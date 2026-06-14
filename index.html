@@ -375,7 +375,47 @@ function loginWithFacebook() {
     + '&redirect_uri=' + encodeURIComponent(CONFIG.FB_REDIRECT_URI)
     + '&scope=' + CONFIG.FB_SCOPE
     + '&response_type=code';
-  window.location.href = authUrl;
+  // Mở popup đăng nhập Facebook
+  var w = 600, h = 700;
+  var left = (screen.width - w) / 2, top = (screen.height - h) / 2;
+  var popup = window.open(authUrl, 'fbLogin', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',scrollbars=yes');
+  if (!popup) { window.location.href = authUrl; return; } // fallback nếu popup bị chặn
+  // Lắng nghe message từ popup
+  window.addEventListener('message', function onMsg(e) {
+    if (e.data && e.data.type === 'fb_oauth_done') {
+      window.removeEventListener('message', onMsg);
+      popup.close();
+      var d = e.data;
+      handleOAuthData(d.userId, d.userName);
+    }
+  });
+}
+
+function handleOAuthData(userId, userName) {
+  var headers = {
+    'apikey': CONFIG.SUPABASE_ANON_KEY,
+    'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY
+  };
+  fetch(CONFIG.SUPABASE_URL + '/rest/v1/pages?user_id=eq.' + userId + '&is_active=eq.true&select=id,fb_page_id,page_name,category', {headers: headers})
+    .then(function(r){ return r.json(); })
+    .then(function(pages) {
+      if (!Array.isArray(pages) || pages.length === 0) {
+        alert('Không tìm thấy fanpage nào. Vui lòng thử lại.');
+        return;
+      }
+      var pageList = pages.map(function(p){ return {id: p.id, name: p.page_name, category: p.category, fb_page_id: p.fb_page_id}; });
+      var session = { mode: 'live', name: userName || 'User', userId: userId, pages: pageList, activePage: null };
+      saveSession(session);
+      if (pageList.length === 1) {
+        session.activePage = pageList[0].id;
+        saveSession(session);
+        hideLogin();
+        loadData();
+      } else {
+        showPageSelector(pageList);
+      }
+    })
+    .catch(function(e){ console.error('Fetch pages error:', e); alert('Lỗi tải dữ liệu page.'); });
 }
 
 // ============================================================
@@ -598,32 +638,19 @@ function handleOAuthCallback() {
   var userName = params.get('user_name');
 
   if (userId) {
-    // Live mode: fetch pages from Supabase
-    var headers = {
-      'apikey': CONFIG.SUPABASE_ANON_KEY,
-      'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY
-    };
-    fetch(CONFIG.SUPABASE_URL + '/rest/v1/pages?user_id=eq.' + userId + '&is_active=eq.true&select=id,fb_page_id,page_name,category', {headers: headers})
-      .then(function(r){ return r.json(); })
-      .then(function(pages) {
-        if (!Array.isArray(pages) || pages.length === 0) {
-          alert('Không tìm thấy fanpage nào. Vui lòng thử lại.');
-          return;
-        }
-        var pageList = pages.map(function(p){ return {id: p.id, name: p.page_name, category: p.category, fb_page_id: p.fb_page_id}; });
-        var session = { mode: 'live', name: userName || 'User', userId: userId, pages: pageList, activePage: null };
-        saveSession(session);
-        window.history.replaceState({}, '', window.location.pathname);
-        if (pageList.length === 1) {
-          session.activePage = pageList[0].id;
-          saveSession(session);
-          hideLogin();
-          loadData();
-        } else {
-          showPageSelector(pageList);
-        }
-      })
-      .catch(function(e){ console.error('Fetch pages error:', e); alert('Lỗi tải dữ liệu page. Kiểm tra kết nối Supabase.'); });
+    // Nếu đang trong popup → gửi message về trang cha rồi đóng
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({
+        type: 'fb_oauth_done',
+        userId: userId,
+        userName: userName
+      }, '*');
+      window.close();
+      return;
+    }
+    // Nếu không phải popup (fallback) → xử lý trực tiếp
+    handleOAuthData(userId, userName);
+    window.history.replaceState({}, '', window.location.pathname);
     return;
   }
 
