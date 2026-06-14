@@ -148,6 +148,29 @@ tr:hover td{background:#f8f9fb}
 .page-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid #e4e6eb;border-radius:14px;cursor:pointer;transition:var(--trans);margin-bottom:8px}
 .page-item:hover{border-color:var(--g2);background:#FEF2F2;transform:translateX(4px)}
 .page-item.selected{border-color:var(--g2);background:#FEF2F2}
+.page-item .pi-check{width:20px;height:20px;border:2px solid #d1d5db;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--trans)}
+.page-item.selected .pi-check{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2)}
+.page-item.selected .pi-check::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+.ps-select-all{display:flex;align-items:center;gap:8px;padding:10px 16px;margin-bottom:12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--g2);border:1px dashed var(--g2);border-radius:10px;transition:var(--trans)}
+.ps-select-all:hover{background:#FEF2F2}
+.ps-select-all .sa-check{width:18px;height:18px;border:2px solid #d1d5db;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--trans)}
+.ps-select-all.all-selected .sa-check{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2)}
+.ps-select-all.all-selected .sa-check::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
+.pf-wrap{position:relative}
+.pf-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff;border:1px solid #e4e6eb;border-radius:8px;cursor:pointer;font-size:13px;color:#1a1a2e;min-width:160px;max-width:260px}
+.pf-btn:hover{border-color:var(--g2)}
+.pf-btn .pf-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-btn .pf-arrow{font-size:10px;color:#65676b;transition:var(--trans)}
+.pf-btn.open .pf-arrow{transform:rotate(180deg)}
+.pf-drop{position:absolute;top:calc(100% + 4px);left:0;min-width:240px;max-width:320px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);z-index:999;display:none;padding:8px 0;max-height:320px;overflow-y:auto}
+.pf-drop.show{display:block}
+.pf-drop-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:13px;color:#1a1a2e;transition:var(--trans)}
+.pf-drop-item:hover{background:#f3f4f6}
+.pf-drop-item.checked{background:#FEF2F2;color:var(--g2)}
+.pf-drop-item .pf-ck{width:16px;height:16px;border:2px solid #d1d5db;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--trans)}
+.pf-drop-item.checked .pf-ck{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2)}
+.pf-drop-item.checked .pf-ck::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
+.pf-drop-sep{height:1px;background:#e4e6eb;margin:4px 0}
 .page-item .pi-avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--g1),var(--g3));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700}
 .page-item .pi-name{font-size:14px;font-weight:600;color:#1a1a2e}
 .page-item .pi-id{font-size:11px;color:#65676b}
@@ -225,7 +248,8 @@ tr:hover td{background:#f8f9fb}
 <div class="page-selector hidden" id="pageSelector">
   <div class="page-sel-box">
     <h2><i class="ti ti-layout-list" style="margin-right:8px;color:var(--g2)"></i>Chọn Fanpage</h2>
-    <p class="ps-sub">Chọn fanpage bạn muốn xem báo cáo</p>
+    <p class="ps-sub">Chọn page bạn muốn theo dõi. Có thể chọn nhiều page cùng lúc.</p>
+    <div class="ps-select-all" id="psSelectAll" onclick="toggleSelectAll()"><div class="sa-check"></div><span>Chọn tất cả</span></div>
     <div id="pageList"></div>
     <button class="btn-select-page" id="btnSelectPage" disabled onclick="confirmPageSelection()">Xác nhận</button>
   </div>
@@ -235,7 +259,10 @@ tr:hover td{background:#f8f9fb}
   <h1><i class="ti ti-chart-bar" style="margin-right:8px;font-size:22px;vertical-align:-2px"></i>Báo cáo hiệu suất fanpage</h1>
   <div class="sub">Dữ liệu tự động — Ver 2</div>
   <div class="ctrls">
-    <select id="pf"><option value="all">Tất cả fanpage</option></select>
+    <div class="pf-wrap" id="pfWrap">
+      <div class="pf-btn" id="pfBtn" onclick="togglePageFilter()"><span class="pf-label">Tất cả fanpage</span><span class="pf-arrow">▼</span></div>
+      <div class="pf-drop" id="pfDrop"></div>
+    </div>
 
     <div style="position:relative">
       <button class="date-btn" id="btnFrom"><i class="ti ti-calendar"></i><span id="lblFrom">12/05/2026</span></button>
@@ -404,9 +431,10 @@ function handleOAuthData(userId, userName) {
         return;
       }
       var pageList = pages.map(function(p){ return {id: p.id, name: p.page_name, category: p.category, fb_page_id: p.fb_page_id}; });
-      var session = { mode: 'live', name: userName || 'User', userId: userId, pages: pageList, activePage: null };
+      var session = { mode: 'live', name: userName || 'User', userId: userId, pages: pageList, activePage: null, activePages: [] };
       saveSession(session);
       if (pageList.length === 1) {
+        session.activePages = [pageList[0].id];
         session.activePage = pageList[0].id;
         saveSession(session);
         hideLogin();
@@ -627,7 +655,7 @@ function generateDemoData(pageId) {
 function loginDemo() {
   CONFIG.MODE = 'demo';
   var pages = DEMO_PAGES.map(function(p){return {id:p.id, name:p.name, category:p.category}});
-  var session = { mode: 'demo', name: 'Demo User', pages: pages, activePage: null };
+  var session = { mode: 'demo', name: 'Demo User', pages: pages, activePage: null, activePages: [] };
   saveSession(session);
   showPageSelector(pages);
 }
@@ -659,10 +687,11 @@ function handleOAuthCallback() {
   if (pagesParam) {
     try {
       var pageList = JSON.parse(decodeURIComponent(pagesParam));
-      var session = { mode: 'live', name: userName || 'User', pages: pageList, activePage: null };
+      var session = { mode: 'live', name: userName || 'User', pages: pageList, activePage: null, activePages: [] };
       saveSession(session);
       window.history.replaceState({}, '', window.location.pathname);
       if (pageList.length === 1) {
+        session.activePages = [pageList[0].id];
         session.activePage = pageList[0].id;
         saveSession(session);
         hideLogin();
@@ -674,6 +703,7 @@ function handleOAuthCallback() {
   }
 }
 
+var _selectedPageIds = [];
 function showPageSelector(pages) {
   document.getElementById('loginOverlay').classList.add('hidden');
   var sel = document.getElementById('pageSelector');
@@ -682,31 +712,58 @@ function showPageSelector(pages) {
   list.innerHTML = '';
   list.style.maxHeight = '360px';
   list.style.overflowY = 'auto';
-  var selected = null;
+  _selectedPageIds = [];
   var colors = ['#ef4444','#f97316','#8b5cf6','#059669','#2563EB','#ec4899'];
   pages.forEach(function(pg, idx) {
     var div = document.createElement('div');
     div.className = 'page-item';
+    div.setAttribute('data-page-id', pg.id);
     var bgColor = colors[idx % colors.length];
     var subText = pg.category ? '<div class="pi-id">' + pg.category + '</div>' : '<div class="pi-id">ID: ' + pg.id + '</div>';
-    div.innerHTML = '<div class="pi-avatar" style="background:' + bgColor + '">' + (pg.name||'?').charAt(0).toUpperCase() + '</div>'
+    div.innerHTML = '<div class="pi-check"></div><div class="pi-avatar" style="background:' + bgColor + '">' + (pg.name||'?').charAt(0).toUpperCase() + '</div>'
       + '<div><div class="pi-name">' + (pg.name||'Fanpage') + '</div>' + subText + '</div>';
     div.addEventListener('click', function() {
-      list.querySelectorAll('.page-item').forEach(function(el){el.classList.remove('selected')});
-      div.classList.add('selected');
-      selected = pg.id;
-      document.getElementById('btnSelectPage').disabled = false;
+      var idx2 = _selectedPageIds.indexOf(pg.id);
+      if (idx2 > -1) { _selectedPageIds.splice(idx2, 1); div.classList.remove('selected'); }
+      else { _selectedPageIds.push(pg.id); div.classList.add('selected'); }
+      document.getElementById('btnSelectPage').disabled = _selectedPageIds.length === 0;
+      updateSelectAllState(pages.length);
     });
     list.appendChild(div);
   });
-  window._selectedPageId = function(){ return selected; };
+  document.getElementById('psSelectAll').classList.remove('all-selected');
+  document.getElementById('btnSelectPage').disabled = true;
+  window._pageSelectorPages = pages;
+}
+
+function toggleSelectAll() {
+  var pages = window._pageSelectorPages || [];
+  var allBtn = document.getElementById('psSelectAll');
+  var isAll = allBtn.classList.contains('all-selected');
+  var list = document.getElementById('pageList');
+  if (isAll) {
+    _selectedPageIds = [];
+    list.querySelectorAll('.page-item').forEach(function(el){ el.classList.remove('selected'); });
+    allBtn.classList.remove('all-selected');
+  } else {
+    _selectedPageIds = pages.map(function(p){ return p.id; });
+    list.querySelectorAll('.page-item').forEach(function(el){ el.classList.add('selected'); });
+    allBtn.classList.add('all-selected');
+  }
+  document.getElementById('btnSelectPage').disabled = _selectedPageIds.length === 0;
+}
+
+function updateSelectAllState(total) {
+  var allBtn = document.getElementById('psSelectAll');
+  if (_selectedPageIds.length === total) allBtn.classList.add('all-selected');
+  else allBtn.classList.remove('all-selected');
 }
 
 function confirmPageSelection() {
-  var pageId = window._selectedPageId ? window._selectedPageId() : null;
-  if (!pageId) return;
+  if (!_selectedPageIds || _selectedPageIds.length === 0) return;
   var session = getSession();
-  session.activePage = pageId;
+  session.activePages = _selectedPageIds.slice();
+  session.activePage = _selectedPageIds[0]; // backward compat
   saveSession(session);
   document.getElementById('pageSelector').classList.add('hidden');
   hideLogin();
@@ -721,16 +778,128 @@ function hideLogin() {
     bar.classList.remove('hidden');
     document.getElementById('ubName').textContent = session.name;
     document.getElementById('ubAvatar').textContent = session.name.charAt(0).toUpperCase();
-    // Update subtitle
-    if (session.mode === 'live') {
-      var pg = session.pages.find(function(p){return p.id === session.activePage});
-      document.querySelector('.hdr .sub').textContent = (pg ? pg.name : 'Fanpage') + ' — Dashboard Ver 2';
-    } else if (session.mode === 'demo') {
-      var dp = DEMO_PAGES.find(function(p){return p.id === session.activePage});
-      if (dp) document.querySelector('.hdr .sub').textContent = dp.name + ' (' + dp.category + ') — Dữ liệu demo';
+    // Backward compat: migrate activePage → activePages
+    if (!session.activePages && session.activePage) {
+      session.activePages = [session.activePage];
+      saveSession(session);
     }
+    // Update subtitle
+    var activePages = session.activePages || [];
+    if (session.mode === 'live') {
+      if (activePages.length === 1) {
+        var pg = session.pages.find(function(p){return p.id === activePages[0]});
+        document.querySelector('.hdr .sub').textContent = (pg ? pg.name : 'Fanpage') + ' — Dashboard Ver 2';
+      } else if (activePages.length > 1) {
+        document.querySelector('.hdr .sub').textContent = activePages.length + ' fanpage — Dashboard Ver 2';
+      }
+    } else if (session.mode === 'demo') {
+      if (activePages.length === 1) {
+        var dp = DEMO_PAGES.find(function(p){return p.id === activePages[0]});
+        if (dp) document.querySelector('.hdr .sub').textContent = dp.name + ' (' + dp.category + ') — Dữ liệu demo';
+      } else {
+        document.querySelector('.hdr .sub').textContent = activePages.length + ' fanpage — Dữ liệu demo';
+      }
+    }
+    // Populate control bar page filter
+    populatePageFilter(session);
   }
 }
+
+// === CONTROL BAR PAGE FILTER (multi-select dropdown) ===
+var _pfSelectedNames = []; // track selected page names for filtering
+
+function populatePageFilter(session) {
+  var drop = document.getElementById('pfDrop');
+  if (!drop) return;
+  drop.innerHTML = '';
+  var pages = session.pages || [];
+  var activePages = session.activePages || [];
+
+  // "Tất cả" option
+  var allItem = document.createElement('div');
+  allItem.className = 'pf-drop-item' + (activePages.length === pages.length || activePages.length === 0 ? ' checked' : '');
+  allItem.setAttribute('data-value', 'all');
+  allItem.innerHTML = '<div class="pf-ck"></div><span>Tất cả fanpage</span>';
+  allItem.addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Select all
+    _pfSelectedNames = [];
+    drop.querySelectorAll('.pf-drop-item').forEach(function(el) {
+      if (el.getAttribute('data-value') === 'all') el.classList.add('checked');
+      else el.classList.remove('checked');
+    });
+    updatePfLabel();
+    rA();
+  });
+  drop.appendChild(allItem);
+
+  // Separator
+  var sep = document.createElement('div');
+  sep.className = 'pf-drop-sep';
+  drop.appendChild(sep);
+
+  // Individual pages
+  pages.forEach(function(pg) {
+    var isActive = activePages.indexOf(pg.id) > -1;
+    var item = document.createElement('div');
+    item.className = 'pf-drop-item' + (isActive && activePages.length < pages.length ? ' checked' : '');
+    item.setAttribute('data-value', pg.name);
+    item.setAttribute('data-page-id', pg.id);
+    item.innerHTML = '<div class="pf-ck"></div><span>' + (pg.name || 'Fanpage') + '</span>';
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      item.classList.toggle('checked');
+      // Uncheck "all" when individual is toggled
+      var allEl = drop.querySelector('[data-value="all"]');
+      var checkedItems = drop.querySelectorAll('.pf-drop-item.checked:not([data-value="all"])');
+      if (checkedItems.length === 0 || checkedItems.length === pages.length) {
+        allEl.classList.add('checked');
+        drop.querySelectorAll('.pf-drop-item:not([data-value="all"])').forEach(function(el){ el.classList.remove('checked'); });
+        _pfSelectedNames = [];
+      } else {
+        allEl.classList.remove('checked');
+        _pfSelectedNames = [];
+        checkedItems.forEach(function(el){ _pfSelectedNames.push(el.getAttribute('data-value')); });
+      }
+      updatePfLabel();
+      rA();
+    });
+    drop.appendChild(item);
+  });
+
+  // Initial state: if all pages active or no filter, show "Tất cả"
+  _pfSelectedNames = [];
+  updatePfLabel();
+}
+
+function updatePfLabel() {
+  var btn = document.getElementById('pfBtn');
+  if (!btn) return;
+  var label = btn.querySelector('.pf-label');
+  if (_pfSelectedNames.length === 0) {
+    label.textContent = 'Tất cả fanpage';
+  } else if (_pfSelectedNames.length === 1) {
+    label.textContent = _pfSelectedNames[0];
+  } else {
+    label.textContent = _pfSelectedNames.length + ' fanpage';
+  }
+}
+
+function togglePageFilter() {
+  var btn = document.getElementById('pfBtn');
+  var drop = document.getElementById('pfDrop');
+  btn.classList.toggle('open');
+  drop.classList.toggle('show');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('pfWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('pfBtn').classList.remove('open');
+    document.getElementById('pfDrop').classList.remove('show');
+  }
+});
 
 function logout() {
   if (!confirm('Bạn muốn đăng xuất?')) return;
@@ -746,7 +915,12 @@ function checkAuth() {
   if (params.get('user_id') || params.get('pages')) { handleOAuthCallback(); return; }
 
   var session = getSession();
-  if (session && session.activePage) {
+  // Backward compat: migrate activePage → activePages
+  if (session && !session.activePages && session.activePage) {
+    session.activePages = [session.activePage];
+    saveSession(session);
+  }
+  if (session && ((session.activePages && session.activePages.length > 0) || session.activePage)) {
     CONFIG.MODE = session.mode || 'demo';
     hideLogin();
     return true;
@@ -843,7 +1017,7 @@ function initDC(){
     document.getElementById('lblTo').textContent=fmtDMY(toDate);
     rA();
   });
-  document.getElementById('pf').addEventListener('change',rA);
+  // Page filter is now custom dropdown, events handled in populatePageFilter()
 }
 
 // === JSONP LOADING ===
@@ -863,16 +1037,6 @@ function loadData(){
     });
     lc = 2;
     cAL();
-    // Pre-select active page in filter
-    var session = getSession();
-    var activeId = session ? session.activePage : null;
-    var profile = activeId ? DEMO_PAGES.find(function(p){return p.id===activeId}) : null;
-    if (profile) {
-      var pf = document.getElementById('pf');
-      pf.value = profile.name;
-      rA();
-      document.querySelector('.hdr .sub').textContent = profile.name + ' (' + profile.category + ') — Dữ liệu demo';
-    }
     return;
   }
 
@@ -958,10 +1122,9 @@ function cAL(){
   if(lc<2)return;
   pD.sort(function(a,b){return tI(a.date).localeCompare(tI(b.date))});
   poD.sort(function(a,b){return tI(b.created_time).localeCompare(tI(a.created_time))});
-  var pgs=[...new Set(pD.map(function(r){return r.page_name}))];
-  var f=document.getElementById('pf');
-  f.innerHTML='<option value="all">Tất cả fanpage</option>';
-  pgs.forEach(function(p){var o=document.createElement('option');o.value=p;o.textContent=p;f.appendChild(o)});
+  // Refresh control bar page filter from session (real pages, not demo)
+  var session = getSession();
+  if (session) populatePageFilter(session);
   document.getElementById('sDot').style.background='#059669';
   document.getElementById('sTxt').textContent='Đã tải: '+pD.length+' dòng page, '+poD.length+' bài viết';
   document.getElementById('sUpd').textContent='Cập nhật: '+new Date().toLocaleString('vi-VN');
@@ -972,11 +1135,11 @@ window.hPoD=function(r){if(r.status==='ok'&&r.table)poD=pGV(r.table);lc++;cAL()}
 
 // === FILTERING ===
 function gFD(){
-  var pg=document.getElementById('pf').value;
+  var selectedNames = _pfSelectedNames || [];
   var fr=fromDate.toISOString().split('T')[0];
   var to=toDate.toISOString().split('T')[0];
-  var pd=pg==='all'?[...pD]:pD.filter(function(r){return r.page_name===pg});
-  var ps=pg==='all'?[...poD]:poD.filter(function(r){return r.page_name===pg});
+  var pd=selectedNames.length===0?[...pD]:pD.filter(function(r){return selectedNames.indexOf(r.page_name)>-1});
+  var ps=selectedNames.length===0?[...poD]:poD.filter(function(r){return selectedNames.indexOf(r.page_name)>-1});
   if(fr){pd=pd.filter(function(r){return tI(r.date)>=fr});ps=ps.filter(function(r){return tI(r.created_time)>=fr})}
   if(to){pd=pd.filter(function(r){return tI(r.date)<=to});ps=ps.filter(function(r){return tI(r.created_time)<=to})}
 
