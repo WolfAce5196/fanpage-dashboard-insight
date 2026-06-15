@@ -148,29 +148,6 @@ tr:hover td{background:#f8f9fb}
 .page-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid #e4e6eb;border-radius:14px;cursor:pointer;transition:var(--trans);margin-bottom:8px}
 .page-item:hover{border-color:var(--g2);background:#FEF2F2;transform:translateX(4px)}
 .page-item.selected{border-color:var(--g2);background:#FEF2F2}
-.page-item .pi-check{width:20px;height:20px;border:2px solid #d1d5db;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--trans)}
-.page-item.selected .pi-check{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2)}
-.page-item.selected .pi-check::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
-.ps-select-all{display:flex;align-items:center;gap:8px;padding:10px 16px;margin-bottom:12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--g2);border:1px dashed var(--g2);border-radius:10px;transition:var(--trans)}
-.ps-select-all:hover{background:#FEF2F2}
-.ps-select-all .sa-check{width:18px;height:18px;border:2px solid #d1d5db;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--trans)}
-.ps-select-all.all-selected .sa-check{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2)}
-.ps-select-all.all-selected .sa-check::after{content:'✓';color:#fff;font-size:11px;font-weight:700}
-.pf-wrap{position:relative}
-.pf-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;background:#fff;border:1px solid #e4e6eb;border-radius:8px;cursor:pointer;font-size:13px;color:#1a1a2e;min-width:160px;max-width:260px}
-.pf-btn:hover{border-color:var(--g2)}
-.pf-btn .pf-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pf-btn .pf-arrow{font-size:10px;color:#65676b;transition:var(--trans)}
-.pf-btn.open .pf-arrow{transform:rotate(180deg)}
-.pf-drop{position:absolute;top:calc(100% + 4px);left:0;min-width:240px;max-width:320px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);z-index:999;display:none;padding:8px 0;max-height:320px;overflow-y:auto}
-.pf-drop.show{display:block}
-.pf-drop-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;font-size:13px;color:#1a1a2e;transition:var(--trans)}
-.pf-drop-item:hover{background:#f3f4f6}
-.pf-drop-item.checked{background:#FEF2F2;color:var(--g2)}
-.pf-drop-item .pf-ck{width:16px;height:16px;border:2px solid #d1d5db;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--trans)}
-.pf-drop-item.checked .pf-ck{background:linear-gradient(135deg,var(--g1),var(--g2));border-color:var(--g2)}
-.pf-drop-item.checked .pf-ck::after{content:'✓';color:#fff;font-size:10px;font-weight:700}
-.pf-drop-sep{height:1px;background:#e4e6eb;margin:4px 0}
 .page-item .pi-avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--g1),var(--g3));display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700}
 .page-item .pi-name{font-size:14px;font-weight:600;color:#1a1a2e}
 .page-item .pi-id{font-size:11px;color:#65676b}
@@ -248,8 +225,7 @@ tr:hover td{background:#f8f9fb}
 <div class="page-selector hidden" id="pageSelector">
   <div class="page-sel-box">
     <h2><i class="ti ti-layout-list" style="margin-right:8px;color:var(--g2)"></i>Chọn Fanpage</h2>
-    <p class="ps-sub">Chọn page bạn muốn theo dõi. Có thể chọn nhiều page cùng lúc.</p>
-    <div class="ps-select-all" id="psSelectAll" onclick="toggleSelectAll()"><div class="sa-check"></div><span>Chọn tất cả</span></div>
+    <p class="ps-sub">Chọn fanpage bạn muốn xem báo cáo</p>
     <div id="pageList"></div>
     <button class="btn-select-page" id="btnSelectPage" disabled onclick="confirmPageSelection()">Xác nhận</button>
   </div>
@@ -259,10 +235,7 @@ tr:hover td{background:#f8f9fb}
   <h1><i class="ti ti-chart-bar" style="margin-right:8px;font-size:22px;vertical-align:-2px"></i>Báo cáo hiệu suất fanpage</h1>
   <div class="sub">Dữ liệu tự động — Ver 2</div>
   <div class="ctrls">
-    <div class="pf-wrap" id="pfWrap">
-      <div class="pf-btn" id="pfBtn" onclick="togglePageFilter()"><span class="pf-label">Tất cả fanpage</span><span class="pf-arrow">▼</span></div>
-      <div class="pf-drop" id="pfDrop"></div>
-    </div>
+    <select id="pf"><option value="all">Tất cả fanpage</option></select>
 
     <div style="position:relative">
       <button class="date-btn" id="btnFrom"><i class="ti ti-calendar"></i><span id="lblFrom">12/05/2026</span></button>
@@ -370,7 +343,7 @@ var CONFIG = {
 
   // Supabase
   SUPABASE_URL: 'https://fsmunbhgtpjvmqfzrygq.supabase.co',
-  SUPABASE_ANON_KEY: 'sb_publishable_WWRkY4pUht_tyil1MVJiEw_A9z7tQcL',
+  SUPABASE_ANON_KEY: 'sb_publishable_WWRkY4pUht_tyil1MVJiEw_A9z7tQcL'
 
   // Mode: 'demo' (Google Sheets) hoặc 'live' (Supabase)
   MODE: 'demo'
@@ -402,48 +375,7 @@ function loginWithFacebook() {
     + '&redirect_uri=' + encodeURIComponent(CONFIG.FB_REDIRECT_URI)
     + '&scope=' + CONFIG.FB_SCOPE
     + '&response_type=code';
-  // Mở popup đăng nhập Facebook
-  var w = 600, h = 700;
-  var left = (screen.width - w) / 2, top = (screen.height - h) / 2;
-  var popup = window.open(authUrl, 'fbLogin', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',scrollbars=yes');
-  if (!popup) { window.location.href = authUrl; return; } // fallback nếu popup bị chặn
-  // Lắng nghe message từ popup
-  window.addEventListener('message', function onMsg(e) {
-    if (e.data && e.data.type === 'fb_oauth_done') {
-      window.removeEventListener('message', onMsg);
-      popup.close();
-      var d = e.data;
-      handleOAuthData(d.userId, d.userName);
-    }
-  });
-}
-
-function handleOAuthData(userId, userName) {
-  var headers = {
-    'apikey': CONFIG.SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY
-  };
-  fetch(CONFIG.SUPABASE_URL + '/rest/v1/pages?user_id=eq.' + userId + '&is_active=eq.true&select=id,fb_page_id,page_name,category', {headers: headers})
-    .then(function(r){ return r.json(); })
-    .then(function(pages) {
-      if (!Array.isArray(pages) || pages.length === 0) {
-        alert('Không tìm thấy fanpage nào. Vui lòng thử lại.');
-        return;
-      }
-      var pageList = pages.map(function(p){ return {id: p.id, name: p.page_name, category: p.category, fb_page_id: p.fb_page_id}; });
-      var session = { mode: 'live', name: userName || 'User', userId: userId, pages: pageList, activePage: null, activePages: [] };
-      saveSession(session);
-      if (pageList.length === 1) {
-        session.activePages = [pageList[0].id];
-        session.activePage = pageList[0].id;
-        saveSession(session);
-        hideLogin();
-        loadData();
-      } else {
-        showPageSelector(pageList);
-      }
-    })
-    .catch(function(e){ console.error('Fetch pages error:', e); alert('Lỗi tải dữ liệu page.'); });
+  window.location.href = authUrl;
 }
 
 // ============================================================
@@ -655,43 +587,22 @@ function generateDemoData(pageId) {
 function loginDemo() {
   CONFIG.MODE = 'demo';
   var pages = DEMO_PAGES.map(function(p){return {id:p.id, name:p.name, category:p.category}});
-  var session = { mode: 'demo', name: 'Demo User', pages: pages, activePage: null, activePages: [] };
+  var session = { mode: 'demo', name: 'Demo User', pages: pages, activePage: null };
   saveSession(session);
   showPageSelector(pages);
 }
 
 function handleOAuthCallback() {
   var params = new URLSearchParams(window.location.search);
-  var userId = params.get('user_id');
+  var pages = params.get('pages');
   var userName = params.get('user_name');
-
-  if (userId) {
-    // Nếu đang trong popup → gửi message về trang cha rồi đóng
-    if (window.opener && !window.opener.closed) {
-      window.opener.postMessage({
-        type: 'fb_oauth_done',
-        userId: userId,
-        userName: userName
-      }, '*');
-      window.close();
-      return;
-    }
-    // Nếu không phải popup (fallback) → xử lý trực tiếp
-    handleOAuthData(userId, userName);
-    window.history.replaceState({}, '', window.location.pathname);
-    return;
-  }
-
-  // Legacy: pages param in URL
-  var pagesParam = params.get('pages');
-  if (pagesParam) {
+  if (pages) {
     try {
-      var pageList = JSON.parse(decodeURIComponent(pagesParam));
-      var session = { mode: 'live', name: userName || 'User', pages: pageList, activePage: null, activePages: [] };
+      var pageList = JSON.parse(decodeURIComponent(pages));
+      var session = { mode: 'live', name: userName || 'User', pages: pageList, activePage: null };
       saveSession(session);
       window.history.replaceState({}, '', window.location.pathname);
       if (pageList.length === 1) {
-        session.activePages = [pageList[0].id];
         session.activePage = pageList[0].id;
         saveSession(session);
         hideLogin();
@@ -703,7 +614,6 @@ function handleOAuthCallback() {
   }
 }
 
-var _selectedPageIds = [];
 function showPageSelector(pages) {
   document.getElementById('loginOverlay').classList.add('hidden');
   var sel = document.getElementById('pageSelector');
@@ -712,58 +622,31 @@ function showPageSelector(pages) {
   list.innerHTML = '';
   list.style.maxHeight = '360px';
   list.style.overflowY = 'auto';
-  _selectedPageIds = [];
+  var selected = null;
   var colors = ['#ef4444','#f97316','#8b5cf6','#059669','#2563EB','#ec4899'];
   pages.forEach(function(pg, idx) {
     var div = document.createElement('div');
     div.className = 'page-item';
-    div.setAttribute('data-page-id', pg.id);
     var bgColor = colors[idx % colors.length];
     var subText = pg.category ? '<div class="pi-id">' + pg.category + '</div>' : '<div class="pi-id">ID: ' + pg.id + '</div>';
-    div.innerHTML = '<div class="pi-check"></div><div class="pi-avatar" style="background:' + bgColor + '">' + (pg.name||'?').charAt(0).toUpperCase() + '</div>'
+    div.innerHTML = '<div class="pi-avatar" style="background:' + bgColor + '">' + (pg.name||'?').charAt(0).toUpperCase() + '</div>'
       + '<div><div class="pi-name">' + (pg.name||'Fanpage') + '</div>' + subText + '</div>';
     div.addEventListener('click', function() {
-      var idx2 = _selectedPageIds.indexOf(pg.id);
-      if (idx2 > -1) { _selectedPageIds.splice(idx2, 1); div.classList.remove('selected'); }
-      else { _selectedPageIds.push(pg.id); div.classList.add('selected'); }
-      document.getElementById('btnSelectPage').disabled = _selectedPageIds.length === 0;
-      updateSelectAllState(pages.length);
+      list.querySelectorAll('.page-item').forEach(function(el){el.classList.remove('selected')});
+      div.classList.add('selected');
+      selected = pg.id;
+      document.getElementById('btnSelectPage').disabled = false;
     });
     list.appendChild(div);
   });
-  document.getElementById('psSelectAll').classList.remove('all-selected');
-  document.getElementById('btnSelectPage').disabled = true;
-  window._pageSelectorPages = pages;
-}
-
-function toggleSelectAll() {
-  var pages = window._pageSelectorPages || [];
-  var allBtn = document.getElementById('psSelectAll');
-  var isAll = allBtn.classList.contains('all-selected');
-  var list = document.getElementById('pageList');
-  if (isAll) {
-    _selectedPageIds = [];
-    list.querySelectorAll('.page-item').forEach(function(el){ el.classList.remove('selected'); });
-    allBtn.classList.remove('all-selected');
-  } else {
-    _selectedPageIds = pages.map(function(p){ return p.id; });
-    list.querySelectorAll('.page-item').forEach(function(el){ el.classList.add('selected'); });
-    allBtn.classList.add('all-selected');
-  }
-  document.getElementById('btnSelectPage').disabled = _selectedPageIds.length === 0;
-}
-
-function updateSelectAllState(total) {
-  var allBtn = document.getElementById('psSelectAll');
-  if (_selectedPageIds.length === total) allBtn.classList.add('all-selected');
-  else allBtn.classList.remove('all-selected');
+  window._selectedPageId = function(){ return selected; };
 }
 
 function confirmPageSelection() {
-  if (!_selectedPageIds || _selectedPageIds.length === 0) return;
+  var pageId = window._selectedPageId ? window._selectedPageId() : null;
+  if (!pageId) return;
   var session = getSession();
-  session.activePages = _selectedPageIds.slice();
-  session.activePage = _selectedPageIds[0]; // backward compat
+  session.activePage = pageId;
   saveSession(session);
   document.getElementById('pageSelector').classList.add('hidden');
   hideLogin();
@@ -778,128 +661,16 @@ function hideLogin() {
     bar.classList.remove('hidden');
     document.getElementById('ubName').textContent = session.name;
     document.getElementById('ubAvatar').textContent = session.name.charAt(0).toUpperCase();
-    // Backward compat: migrate activePage → activePages
-    if (!session.activePages && session.activePage) {
-      session.activePages = [session.activePage];
-      saveSession(session);
-    }
     // Update subtitle
-    var activePages = session.activePages || [];
     if (session.mode === 'live') {
-      if (activePages.length === 1) {
-        var pg = session.pages.find(function(p){return p.id === activePages[0]});
-        document.querySelector('.hdr .sub').textContent = (pg ? pg.name : 'Fanpage') + ' — Dashboard Ver 2';
-      } else if (activePages.length > 1) {
-        document.querySelector('.hdr .sub').textContent = activePages.length + ' fanpage — Dashboard Ver 2';
-      }
+      var pg = session.pages.find(function(p){return p.id === session.activePage});
+      document.querySelector('.hdr .sub').textContent = (pg ? pg.name : 'Fanpage') + ' — Dashboard Ver 2';
     } else if (session.mode === 'demo') {
-      if (activePages.length === 1) {
-        var dp = DEMO_PAGES.find(function(p){return p.id === activePages[0]});
-        if (dp) document.querySelector('.hdr .sub').textContent = dp.name + ' (' + dp.category + ') — Dữ liệu demo';
-      } else {
-        document.querySelector('.hdr .sub').textContent = activePages.length + ' fanpage — Dữ liệu demo';
-      }
+      var dp = DEMO_PAGES.find(function(p){return p.id === session.activePage});
+      if (dp) document.querySelector('.hdr .sub').textContent = dp.name + ' (' + dp.category + ') — Dữ liệu demo';
     }
-    // Populate control bar page filter
-    populatePageFilter(session);
   }
 }
-
-// === CONTROL BAR PAGE FILTER (multi-select dropdown) ===
-var _pfSelectedNames = []; // track selected page names for filtering
-
-function populatePageFilter(session) {
-  var drop = document.getElementById('pfDrop');
-  if (!drop) return;
-  drop.innerHTML = '';
-  var pages = session.pages || [];
-  var activePages = session.activePages || [];
-
-  // "Tất cả" option
-  var allItem = document.createElement('div');
-  allItem.className = 'pf-drop-item' + (activePages.length === pages.length || activePages.length === 0 ? ' checked' : '');
-  allItem.setAttribute('data-value', 'all');
-  allItem.innerHTML = '<div class="pf-ck"></div><span>Tất cả fanpage</span>';
-  allItem.addEventListener('click', function(e) {
-    e.stopPropagation();
-    // Select all
-    _pfSelectedNames = [];
-    drop.querySelectorAll('.pf-drop-item').forEach(function(el) {
-      if (el.getAttribute('data-value') === 'all') el.classList.add('checked');
-      else el.classList.remove('checked');
-    });
-    updatePfLabel();
-    rA();
-  });
-  drop.appendChild(allItem);
-
-  // Separator
-  var sep = document.createElement('div');
-  sep.className = 'pf-drop-sep';
-  drop.appendChild(sep);
-
-  // Individual pages
-  pages.forEach(function(pg) {
-    var isActive = activePages.indexOf(pg.id) > -1;
-    var item = document.createElement('div');
-    item.className = 'pf-drop-item' + (isActive && activePages.length < pages.length ? ' checked' : '');
-    item.setAttribute('data-value', pg.name);
-    item.setAttribute('data-page-id', pg.id);
-    item.innerHTML = '<div class="pf-ck"></div><span>' + (pg.name || 'Fanpage') + '</span>';
-    item.addEventListener('click', function(e) {
-      e.stopPropagation();
-      item.classList.toggle('checked');
-      // Uncheck "all" when individual is toggled
-      var allEl = drop.querySelector('[data-value="all"]');
-      var checkedItems = drop.querySelectorAll('.pf-drop-item.checked:not([data-value="all"])');
-      if (checkedItems.length === 0 || checkedItems.length === pages.length) {
-        allEl.classList.add('checked');
-        drop.querySelectorAll('.pf-drop-item:not([data-value="all"])').forEach(function(el){ el.classList.remove('checked'); });
-        _pfSelectedNames = [];
-      } else {
-        allEl.classList.remove('checked');
-        _pfSelectedNames = [];
-        checkedItems.forEach(function(el){ _pfSelectedNames.push(el.getAttribute('data-value')); });
-      }
-      updatePfLabel();
-      rA();
-    });
-    drop.appendChild(item);
-  });
-
-  // Initial state: if all pages active or no filter, show "Tất cả"
-  _pfSelectedNames = [];
-  updatePfLabel();
-}
-
-function updatePfLabel() {
-  var btn = document.getElementById('pfBtn');
-  if (!btn) return;
-  var label = btn.querySelector('.pf-label');
-  if (_pfSelectedNames.length === 0) {
-    label.textContent = 'Tất cả fanpage';
-  } else if (_pfSelectedNames.length === 1) {
-    label.textContent = _pfSelectedNames[0];
-  } else {
-    label.textContent = _pfSelectedNames.length + ' fanpage';
-  }
-}
-
-function togglePageFilter() {
-  var btn = document.getElementById('pfBtn');
-  var drop = document.getElementById('pfDrop');
-  btn.classList.toggle('open');
-  drop.classList.toggle('show');
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-  var wrap = document.getElementById('pfWrap');
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById('pfBtn').classList.remove('open');
-    document.getElementById('pfDrop').classList.remove('show');
-  }
-});
 
 function logout() {
   if (!confirm('Bạn muốn đăng xuất?')) return;
@@ -912,15 +683,10 @@ function logout() {
 function checkAuth() {
   // Check OAuth callback params
   var params = new URLSearchParams(window.location.search);
-  if (params.get('user_id') || params.get('pages')) { handleOAuthCallback(); return; }
+  if (params.get('pages')) { handleOAuthCallback(); return; }
 
   var session = getSession();
-  // Backward compat: migrate activePage → activePages
-  if (session && !session.activePages && session.activePage) {
-    session.activePages = [session.activePage];
-    saveSession(session);
-  }
-  if (session && ((session.activePages && session.activePages.length > 0) || session.activePage)) {
+  if (session && session.activePage) {
     CONFIG.MODE = session.mode || 'demo';
     hideLogin();
     return true;
@@ -1017,7 +783,7 @@ function initDC(){
     document.getElementById('lblTo').textContent=fmtDMY(toDate);
     rA();
   });
-  // Page filter is now custom dropdown, events handled in populatePageFilter()
+  document.getElementById('pf').addEventListener('change',rA);
 }
 
 // === JSONP LOADING ===
@@ -1037,66 +803,83 @@ function loadData(){
     });
     lc = 2;
     cAL();
+    // Pre-select active page in filter
+    var session = getSession();
+    var activeId = session ? session.activePage : null;
+    var profile = activeId ? DEMO_PAGES.find(function(p){return p.id===activeId}) : null;
+    if (profile) {
+      var pf = document.getElementById('pf');
+      pf.value = profile.name;
+      rA();
+      document.querySelector('.hdr .sub').textContent = profile.name + ' (' + profile.category + ') — Dữ liệu demo';
+    }
     return;
   }
 
-  // LIVE MODE: Fetch from Supabase REST API
-  var session = getSession();
-  if (!session || !session.pages || session.pages.length === 0) {
-    document.getElementById('sDot').style.background='#DC2626';
-    document.getElementById('sTxt').textContent='Không có dữ liệu page. Vui lòng đăng nhập lại.';
+  // Live mode: fetch from Supabase REST API
+  if (CONFIG.MODE === 'live') {
+    var sbHeaders = {
+      'apikey': CONFIG.SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY
+    };
+    var sbBase = CONFIG.SUPABASE_URL + '/rest/v1/';
+
+    // Fetch page_daily
+    fetch(sbBase + 'page_daily?select=*&order=date.asc', { headers: sbHeaders })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        pD = (data || []).map(function(r){
+          return {
+            page_name: r.page_name || '',
+            date: r.date,
+            followers: r.followers || 0,
+            net_follows: r.new_followers || 0,
+            reach: r.reach || 0,
+            impressions: r.impressions || 0,
+            engagements: r.engagements || 0,
+            reactions: r.reactions || 0,
+            comments: r.comments || 0,
+            shares: r.shares || 0,
+            clicks: r.clicks || 0
+          };
+        });
+        lc++; cAL();
+      })
+      .catch(function(e){ console.error('Supabase page_daily error', e); lc++; cAL(); });
+
+    // Fetch posts_detail + pages (for page_name lookup)
+    Promise.all([
+      fetch(sbBase + 'posts_detail?select=*&order=created_time.desc', { headers: sbHeaders }).then(function(r){ return r.json(); }),
+      fetch(sbBase + 'pages?select=page_id,page_name', { headers: sbHeaders }).then(function(r){ return r.json(); })
+    ]).then(function(results){
+      var posts = results[0] || [];
+      var pages = results[1] || [];
+      var pageMap = {};
+      pages.forEach(function(p){ pageMap[p.page_id] = p.page_name; });
+
+      poD = posts.map(function(p){
+        return {
+          page_name: pageMap[p.page_id] || '',
+          created_time: p.created_time,
+          post_type: p.type || 'status',
+          message: p.message || '',
+          permalink_url: p.permalink_url || '',
+          total_engagement: (p.engagements || 0) + (p.clicks || 0),
+          clicks: p.clicks || 0,
+          reactions_total: p.reactions || 0,
+          comments: p.comments || 0,
+          shares: p.shares || 0
+        };
+      });
+      lc++; cAL();
+    }).catch(function(e){ console.error('Supabase posts error', e); lc++; cAL(); });
+
     return;
   }
 
-  var pageIds = session.pages.map(function(p){ return p.id; });
-  var pageIdFilter = 'in.(%22' + pageIds.join('%22,%22') + '%22)';
-  var sbHeaders = {
-    'apikey': CONFIG.SUPABASE_ANON_KEY,
-    'Authorization': 'Bearer ' + CONFIG.SUPABASE_ANON_KEY
-  };
-
-  // Fetch page_daily
-  fetch(CONFIG.SUPABASE_URL + '/rest/v1/page_daily?select=*,pages!inner(page_name,category)&page_id=' + pageIdFilter + '&order=date.asc', {headers: sbHeaders})
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (Array.isArray(data)) {
-        pD = data.map(function(d){
-          return {
-            date: d.date, page_name: d.pages.page_name,
-            followers: d.followers||0, new_followers: d.new_followers||0,
-            reach: d.reach||0, impressions: d.impressions||0,
-            engagements: d.engagements||0, reactions: d.reactions||0,
-            comments: d.comments||0, shares: d.shares||0,
-            clicks: d.clicks||0, video_views: d.video_views||0,
-            page_views: d.page_views||0, negative_feedback: d.negative_feedback||0
-          };
-        });
-      }
-      lc++; cAL();
-    })
-    .catch(function(e){ console.error('Supabase page_daily error:', e); lc++; cAL(); });
-
-  // Fetch posts_detail
-  fetch(CONFIG.SUPABASE_URL + '/rest/v1/posts_detail?select=*,pages!inner(page_name,category)&page_id=' + pageIdFilter + '&order=created_time.desc&limit=200', {headers: sbHeaders})
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if (Array.isArray(data)) {
-        poD = data.map(function(d){
-          return {
-            created_time: d.created_time, page_name: d.pages.page_name,
-            message: d.message||'', type: d.type||'status',
-            reach: d.reach||0, impressions: d.impressions||0,
-            total_engagement: d.engagements||0, clicks: d.clicks||0,
-            reactions_total: d.reactions||0, comments: d.comments||0,
-            shares: d.shares||0, video_views: d.video_views||0,
-            score: d.score||0,
-            permalink_url: d.fb_post_id ? 'https://www.facebook.com/' + d.fb_post_id : ''
-          };
-        });
-      }
-      lc++; cAL();
-    })
-    .catch(function(e){ console.error('Supabase posts_detail error:', e); lc++; cAL(); });
+  // Fallback: Google Sheets JSONP (legacy)
+  document.querySelectorAll('script[data-jp]').forEach(function(s){s.remove()});
+  ldS('Page_Daily','hPD');ldS('Posts_Detail','hPoD');
 }
 function ldS(sh,cb){
   var s=document.createElement('script');s.setAttribute('data-jp',sh);
@@ -1122,9 +905,10 @@ function cAL(){
   if(lc<2)return;
   pD.sort(function(a,b){return tI(a.date).localeCompare(tI(b.date))});
   poD.sort(function(a,b){return tI(b.created_time).localeCompare(tI(a.created_time))});
-  // Refresh control bar page filter from session (real pages, not demo)
-  var session = getSession();
-  if (session) populatePageFilter(session);
+  var pgs=[...new Set(pD.map(function(r){return r.page_name}))];
+  var f=document.getElementById('pf');
+  f.innerHTML='<option value="all">Tất cả fanpage</option>';
+  pgs.forEach(function(p){var o=document.createElement('option');o.value=p;o.textContent=p;f.appendChild(o)});
   document.getElementById('sDot').style.background='#059669';
   document.getElementById('sTxt').textContent='Đã tải: '+pD.length+' dòng page, '+poD.length+' bài viết';
   document.getElementById('sUpd').textContent='Cập nhật: '+new Date().toLocaleString('vi-VN');
@@ -1135,11 +919,11 @@ window.hPoD=function(r){if(r.status==='ok'&&r.table)poD=pGV(r.table);lc++;cAL()}
 
 // === FILTERING ===
 function gFD(){
-  var selectedNames = _pfSelectedNames || [];
+  var pg=document.getElementById('pf').value;
   var fr=fromDate.toISOString().split('T')[0];
   var to=toDate.toISOString().split('T')[0];
-  var pd=selectedNames.length===0?[...pD]:pD.filter(function(r){return selectedNames.indexOf(r.page_name)>-1});
-  var ps=selectedNames.length===0?[...poD]:poD.filter(function(r){return selectedNames.indexOf(r.page_name)>-1});
+  var pd=pg==='all'?[...pD]:pD.filter(function(r){return r.page_name===pg});
+  var ps=pg==='all'?[...poD]:poD.filter(function(r){return r.page_name===pg});
   if(fr){pd=pd.filter(function(r){return tI(r.date)>=fr});ps=ps.filter(function(r){return tI(r.created_time)>=fr})}
   if(to){pd=pd.filter(function(r){return tI(r.date)<=to});ps=ps.filter(function(r){return tI(r.created_time)<=to})}
 
@@ -1654,4 +1438,414 @@ if (checkAuth()) { loadData(); }
 .chat-suggest{padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #f0f2f5;background:#fff;flex-shrink:0}
 .chat-suggest button{padding:5px 12px;border-radius:16px;border:1px solid #e4e6eb;background:#fff;font-size:11px;cursor:pointer;color:#65676b;transition:all 0.2s;white-space:nowrap}
 .chat-suggest button:hover{background:#f0f2f5;border-color:#ccc;color:#1c1e21}
-.chat-input{display:flex;padding:12px 16px;border-top:1px solid #
+.chat-input{display:flex;padding:12px 16px;border-top:1px solid #e4e6eb;gap:8px;background:#fff;align-items:flex-end;flex-shrink:0}
+.chat-input textarea{flex:1;border:1px solid #e4e6eb;border-radius:12px;padding:10px 14px;font-size:13px;resize:none;outline:none;max-height:80px;min-height:40px;font-family:inherit;line-height:1.4;transition:border-color 0.2s}
+.chat-input textarea:focus{border-color:#ef4444}
+.chat-input button{width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(135deg,#ef4444,#ec4899);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s;flex-shrink:0}
+.chat-input button:hover{transform:scale(1.05)}
+.typing{display:flex;gap:4px;padding:8px 14px;align-items:center}
+.typing span{width:7px;height:7px;border-radius:50%;background:#ccc;animation:typDot 1.2s ease infinite}
+.typing span:nth-child(2){animation-delay:0.2s}.typing span:nth-child(3){animation-delay:0.4s}
+@keyframes typDot{0%,60%,100%{opacity:0.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+/* CONVERSATION LIST PANEL */
+.conv-panel{position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;z-index:10;display:none;flex-direction:column;animation:convSlide 0.25s ease}
+.conv-panel.open{display:flex}
+@keyframes convSlide{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.conv-head{background:linear-gradient(135deg,#f97316,#ef4444,#ec4899,#a855f7);background-size:200% 200%;animation:gs 6s ease infinite;padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.conv-head h3{font-size:14px;font-weight:600}
+.conv-head-r{display:flex;gap:4px}
+.conv-head-r button{background:rgba(255,255,255,0.15);border:none;border-radius:8px;height:32px;cursor:pointer;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0 12px;gap:4px}
+.conv-head-r button:hover{background:rgba(255,255,255,0.3)}
+.conv-list{flex:1;overflow-y:auto;padding:8px}
+.conv-list::-webkit-scrollbar{width:4px}
+.conv-list::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+.conv-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;margin-bottom:2px}
+.conv-item:hover{background:#f7f8fa}
+.conv-item.active{background:#FEF2F2;border-color:#FECACA}
+.conv-item .conv-icon{width:36px;height:36px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:16px;color:#7C3AED;flex-shrink:0}
+.conv-item.active .conv-icon{background:linear-gradient(135deg,#ef4444,#ec4899);color:#fff}
+.conv-item .conv-info{flex:1;min-width:0}
+.conv-item .conv-name{font-size:13px;font-weight:500;color:#1c1e21;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-item .conv-meta{font-size:11px;color:#65676b;margin-top:2px;display:flex;gap:8px}
+.conv-item .conv-preview{font-size:11px;color:#999;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-item .conv-del{width:28px;height:28px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#999;font-size:14px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.15s;flex-shrink:0}
+.conv-item:hover .conv-del{opacity:1}
+.conv-item .conv-del:hover{background:#FEE2E2;color:#DC2626}
+.conv-empty{text-align:center;padding:40px 20px;color:#999;font-size:13px}
+@media(max-width:500px){.chat-popup{width:calc(100vw - 16px);right:8px;bottom:80px;height:70vh}}
+</style>
+
+<button class="chat-fab" id="chatFab" title="Trợ lý AI">
+  <i class="ti ti-message-chatbot" style="font-size:26px;color:#fff"></i>
+</button>
+
+<div class="chat-popup" id="chatPopup">
+  <!-- Main chat view -->
+  <div class="chat-head">
+    <div class="chat-head-l">
+      <div class="av"><i class="ti ti-robot"></i></div>
+      <div><h3 id="chatTitle">Trợ lý phân tích</h3><div class="st">Sẵn sàng hỗ trợ</div></div>
+    </div>
+    <div class="chat-head-r">
+      <button id="btnConvList" title="Danh sách hội thoại"><i class="ti ti-layout-sidebar-left-collapse"></i></button>
+      <button id="btnNewConv" title="Hội thoại mới"><i class="ti ti-plus"></i></button>
+      <button id="chatClose" title="Đóng"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-suggest" id="chatSug"></div>
+  <div class="chat-input">
+    <textarea id="chatIn" placeholder="Hỏi về dữ liệu fanpage..." rows="1"></textarea>
+    <button id="chatSend"><i class="ti ti-send"></i></button>
+  </div>
+
+  <!-- Conversation list panel (overlay) -->
+  <div class="conv-panel" id="convPanel">
+    <div class="conv-head">
+      <h3><i class="ti ti-messages" style="margin-right:6px;font-size:16px;vertical-align:-2px"></i>Hội thoại</h3>
+      <div class="conv-head-r">
+        <button id="btnNewConv2"><i class="ti ti-plus"></i> Mới</button>
+        <button id="btnConvBack"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div class="conv-list" id="convList"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+var STORE_KEY='fpDash_conversations';
+var ACTIVE_KEY='fpDash_activeConv';
+var body=document.getElementById('chatBody');
+var inp=document.getElementById('chatIn');
+var popup=document.getElementById('chatPopup');
+var sugBox=document.getElementById('chatSug');
+var convPanel=document.getElementById('convPanel');
+var convListEl=document.getElementById('convList');
+var titleEl=document.getElementById('chatTitle');
+var isOpen=false;
+
+var conversations=[];
+var activeConvId=null;
+
+var SUGGESTIONS=['Tư vấn chiến lược','Chấm điểm bài viết','So sánh tuần này vs trước','Followers hiện tại?','Bài viết tốt nhất?','Tổng hợp nhanh','Xuất báo cáo PDF'];
+var WELCOME_MSG='Xin chào! 👋 Tôi là <strong>trợ lý phân tích</strong> dữ liệu fanpage.<br><br>Hỏi tôi bất kỳ điều gì về hiệu suất fanpage — followers, tương tác, bài viết, xu hướng... Tôi sẽ phân tích trực tiếp từ dữ liệu đã tải.';
+
+// === STORAGE ===
+function saveConvs(){try{localStorage.setItem(STORE_KEY,JSON.stringify(conversations));localStorage.setItem(ACTIVE_KEY,activeConvId||'')}catch(e){}}
+function loadConvs(){try{var s=localStorage.getItem(STORE_KEY);if(s)conversations=JSON.parse(s);var a=localStorage.getItem(ACTIVE_KEY);if(a)activeConvId=a}catch(e){conversations=[];activeConvId=null}}
+
+// === CONVERSATION MANAGEMENT ===
+function genId(){return 'c_'+Date.now()+'_'+Math.random().toString(36).substr(2,5)}
+function fmtDate(ts){var d=new Date(ts);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function autoName(msgs){
+  var userMsgs=msgs.filter(function(m){return m.isUser});
+  if(!userMsgs.length)return 'Hội thoại mới';
+  var first=userMsgs[0].text;
+  // Strip HTML tags for clean text
+  var clean=first.replace(/<[^>]*>/g,'').trim();
+  if(clean.length<=30)return clean;
+  // Smart truncate at word boundary
+  var truncated=clean.substring(0,30);
+  var lastSpace=truncated.lastIndexOf(' ');
+  if(lastSpace>15)truncated=truncated.substring(0,lastSpace);
+  return truncated+'...';
+}
+
+function getConv(id){return conversations.find(function(c){return c.id===id})||null}
+
+function createConv(){
+  var conv={id:genId(),name:'Hội thoại mới',messages:[{html:WELCOME_MSG,isUser:false,time:nowStr(),text:WELCOME_MSG}],created:Date.now(),updated:Date.now()};
+  conversations.unshift(conv);
+  activeConvId=conv.id;
+  saveConvs();
+  return conv;
+}
+
+function switchConv(id){
+  saveCurrentMessages();
+  activeConvId=id;
+  var conv=getConv(id);
+  if(!conv)return;
+  renderMessages(conv.messages);
+  titleEl.textContent=conv.name;
+  saveConvs();
+}
+
+function saveCurrentMessages(){
+  if(!activeConvId)return;
+  var conv=getConv(activeConvId);
+  if(!conv)return;
+  // Serialize current DOM messages
+  var msgs=[];
+  var divs=body.querySelectorAll('.msg');
+  divs.forEach(function(div){
+    var isUser=div.classList.contains('msg-user');
+    var bubble=div.querySelector('.msg-bubble');
+    var timeEl=div.querySelector('.msg-time');
+    if(bubble)msgs.push({html:bubble.innerHTML,isUser:isUser,time:timeEl?timeEl.textContent:'',text:bubble.textContent||''});
+  });
+  conv.messages=msgs;
+  conv.updated=Date.now();
+  // Auto-name if still default
+  if(conv.name==='Hội thoại mới'){conv.name=autoName(msgs)}
+  titleEl.textContent=conv.name;
+  saveConvs();
+}
+
+function deleteConv(id){
+  conversations=conversations.filter(function(c){return c.id!==id});
+  if(activeConvId===id){
+    if(conversations.length){switchConv(conversations[0].id)}
+    else{var nc=createConv();renderMessages(nc.messages);titleEl.textContent=nc.name}
+  }
+  saveConvs();
+  renderConvList();
+}
+
+// === RENDER ===
+function nowStr(){var d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function renderMessages(msgs){
+  body.innerHTML='';
+  msgs.forEach(function(m){
+    var div=document.createElement('div');
+    div.className='msg '+(m.isUser?'msg-user':'msg-bot');
+    div.innerHTML='<div class="msg-bubble">'+m.html+'</div><div class="msg-time">'+(m.time||'')+'</div>';
+    body.appendChild(div);
+  });
+  body.scrollTop=body.scrollHeight;
+  renderSuggestions();
+}
+
+function addMsg(html,isUser){
+  var div=document.createElement('div');
+  div.className='msg '+(isUser?'msg-user':'msg-bot');
+  div.innerHTML='<div class="msg-bubble">'+html+'</div><div class="msg-time">'+nowStr()+'</div>';
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+}
+
+function showTyping(){var div=document.createElement('div');div.className='msg msg-bot';div.id='typInd';div.innerHTML='<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';body.appendChild(div);body.scrollTop=body.scrollHeight}
+function hideTyping(){var t=document.getElementById('typInd');if(t)t.remove()}
+
+function renderSuggestions(items){
+  sugBox.innerHTML='';
+  (items||SUGGESTIONS).forEach(function(s){
+    var b=document.createElement('button');b.textContent=s;
+    b.addEventListener('click',function(){inp.value=s;sendChat()});
+    sugBox.appendChild(b);
+  });
+}
+
+function renderConvList(){
+  if(!conversations.length){convListEl.innerHTML='<div class="conv-empty"><i class="ti ti-messages" style="font-size:32px;display:block;margin-bottom:8px;color:#ccc"></i>Chưa có hội thoại nào</div>';return}
+  convListEl.innerHTML='';
+  conversations.forEach(function(c){
+    var item=document.createElement('div');
+    item.className='conv-item'+(c.id===activeConvId?' active':'');
+    var msgCount=c.messages?c.messages.filter(function(m){return m.isUser}).length:0;
+    var preview='';
+    if(c.messages&&c.messages.length){var lastMsg=c.messages[c.messages.length-1];preview=(lastMsg.text||'').replace(/<[^>]*>/g,'').substring(0,40)}
+    item.innerHTML='<div class="conv-icon"><i class="ti ti-message-circle"></i></div><div class="conv-info"><div class="conv-name">'+c.name+'</div><div class="conv-meta"><span>'+fmtDate(c.updated)+'</span><span>'+msgCount+' câu hỏi</span></div>'+(preview?'<div class="conv-preview">'+preview+'</div>':'')+'</div><button class="conv-del" title="Xóa"><i class="ti ti-trash"></i></button>';
+    // Click to switch
+    item.addEventListener('click',function(e){
+      if(e.target.closest('.conv-del'))return;
+      switchConv(c.id);
+      convPanel.classList.remove('open');
+    });
+    // Delete button
+    item.querySelector('.conv-del').addEventListener('click',function(e){
+      e.stopPropagation();
+      deleteConv(c.id);
+    });
+    convListEl.appendChild(item);
+  });
+}
+
+// === DATA HELPERS ===
+function getFiltered(){var pg=document.getElementById('pf').value;var pd=pg==='all'?pD.slice():pD.filter(function(r){return r.page_name===pg});var ps=pg==='all'?poD.slice():poD.filter(function(r){return r.page_name===pg});return{pd:pd,ps:ps}}
+function getByDate(pd,ds){return pd.filter(function(r){return tI(r.date)===ds})}
+function last(a){return a.length?a[a.length-1]:null}
+function sum(a,k){return a.reduce(function(s,r){return s+(Number(r[k])||0)},0)}
+function avg(a,k){return a.length?(sum(a,k)/a.length).toFixed(1):0}
+function miniTable(h,rows){var s='<table><thead><tr>'+h.map(function(c){return'<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>';rows.forEach(function(r){s+='<tr>'+r.map(function(c){return'<td>'+c+'</td>'}).join('')+'</tr>'});return s+'</tbody></table>'}
+function metricRows(items){return'<div>'+items.map(function(m){return'<div class="metric-row"><span>'+m[0]+'</span><span class="metric-val">'+m[1]+'</span></div>'}).join('')+'</div>'}
+function miniBarChart(items,maxVal){if(!maxVal)maxVal=Math.max.apply(null,items.map(function(i){return i[1]}));return items.map(function(i){var pct=maxVal>0?(i[1]/maxVal*100):0;return'<div style="margin:4px 0"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span>'+i[0]+'</span><span style="font-weight:600">'+fN(i[1])+'</span></div><div class="mini-bar" style="width:'+pct+'%"></div></div>'}).join('')}
+function sugTags(items){return'<div style="margin-top:8px">'+items.map(function(s){return'<span class="tag-suggest">'+s+'</span>'}).join('')+'</div>'}
+
+// === PARSE DATE ===
+function parseDateRef(q){var today=new Date();if(/hôm nay|hnay|today/i.test(q))return tI(today.toISOString());if(/hôm qua|yesterday/i.test(q)){var y=new Date(today);y.setDate(y.getDate()-1);return tI(y.toISOString())}var dm=q.match(/ngày\s*(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{4}))?/);if(dm){var yr=dm[3]||today.getFullYear();return yr+'-'+String(dm[2]).padStart(2,'0')+'-'+String(dm[1]).padStart(2,'0')}return null}
+function parseNDays(q){var m=q.match(/(\d+)\s*ngày/);if(m)return parseInt(m[1]);if(/tuần|7 ngày|week/i.test(q))return 7;if(/tháng|30 ngày|month/i.test(q))return 30;return null}
+
+// === QUERY ROUTER ===
+function processQuery(q){
+  var d=getFiltered(),pd=d.pd,ps=d.ps,ql=q.toLowerCase();
+
+  var dateRef=parseDateRef(ql);
+  if(dateRef&&pd.length){var dayData=getByDate(pd,dateRef);var dayPosts=ps.filter(function(p){return tI(p.created_time)===dateRef});if(!dayData.length&&!dayPosts.length)return'Không có dữ liệu cho ngày <strong>'+fD(dateRef)+'</strong>. Dữ liệu hiện có từ <strong>'+fD(tI(pd[0].date))+'</strong> đến <strong>'+fD(tI(last(pd).date))+'</strong>.';var r=dayData[0];var html='📅 <strong>Dữ liệu ngày '+fD(dateRef)+'</strong>';if(r)html+=metricRows([['Followers',fN(r.followers)],['Follows ròng',(r.net_follows>=0?'+':'')+fN(r.net_follows)],['Tương tác',fN(r.post_engagements)],['Xem trang',fN(r.page_views)],['Đang nói về',fN(r.talking_about)],['Video views',fN(r.video_views)],['Tỷ lệ TT',r.engagement_rate+'%']]);if(dayPosts.length)html+='<br>📝 <strong>'+dayPosts.length+' bài viết</strong> — tổng tương tác: <strong>'+fN(sum(dayPosts,'total_engagement'))+'</strong>';return html}
+
+  if(/follower|người theo dõi|fan|theo dõi/i.test(ql)){if(!pd.length)return noData();var l=last(pd);var nDays=parseNDays(ql)||pd.length;var slice=pd.slice(-nDays);var first=slice[0],lastR=last(slice);var change=lastR.followers-first.followers;var html='👥 <strong>Phân tích Followers</strong><br><br>';html+=metricRows([['Hiện tại',fN(lastR.followers)],['Thay đổi ('+slice.length+' ngày)',(change>=0?'+':'')+fN(change)],['TB follows ròng/ngày',avg(slice,'net_follows')],['Tổng follows mới',fN(sum(slice,'new_follows'))],['Tổng bỏ theo dõi',fN(sum(slice,'unfollows'))]]);if(slice.length>1){html+='<br><strong>Xu hướng:</strong>';html+=miniBarChart(slice.slice(-7).map(function(r){return[fDS(r.date),r.net_follows]}))}html+=sugTags(['So sánh reactions','Bài viết tốt nhất','Tỷ lệ tương tác']);return html}
+
+  if(/bài viết.*tốt|bài.*cao nhất|top.*bài|best.*post|bài.*nhiều.*tương tác|bài viết nào/i.test(ql)){if(!ps.length)return noDataPost();var top=ps.slice().sort(function(a,b){return(b.total_engagement||0)-(a.total_engagement||0)}).slice(0,5);var html='🏆 <strong>Top '+top.length+' bài viết tương tác cao nhất</strong><br><br>';html+=miniTable(['#','Loại','Tương tác','Clicks','React','BL','CS'],top.map(function(p,i){return['<strong>'+(i+1)+'</strong>',p.post_type||'?',fN(p.total_engagement),fN(p.clicks),fN(p.reactions_total),fN(p.comments),fN(p.shares)]}));html+='<br>';top.slice(0,2).forEach(function(p,i){html+='<br>📝 <strong>#'+(i+1)+':</strong> '+String(p.message_preview||'').substring(0,80)+'...';if(p.permalink_url)html+=' <a href="'+p.permalink_url+'" target="_blank" style="color:#ef4444">↗ Xem</a>'});html+=sugTags(['Phân tích dạng bài','Xu hướng followers','Xuất báo cáo PDF']);return html}
+
+  if(/tỷ lệ tương tác|engagement.*rate|tỉ lệ tt|tt %/i.test(ql)){if(!pd.length)return noData();var l=last(pd);var er=l.followers>0?(l.post_engagements/l.followers*100).toFixed(2):0;var avgER=avg(pd,'engagement_rate');var maxER=Math.max.apply(null,pd.map(function(r){return r.engagement_rate||0}));var minER=Math.min.apply(null,pd.map(function(r){return r.engagement_rate||0}));var html='📊 <strong>Phân tích tỷ lệ tương tác</strong><br><br>';html+=metricRows([['Hiện tại',er+'%'],['Trung bình ('+pd.length+' ngày)',avgER+'%'],['Cao nhất',maxER.toFixed(2)+'%'],['Thấp nhất',minER.toFixed(2)+'%']]);var bench=er>1?'<span style="color:#059669">✓ Tốt</span> (benchmark: 1-3%)':er>0.5?'<span style="color:#D97706">○ Trung bình</span>':'<span style="color:#DC2626">⚠ Thấp</span> — benchmark ngành 1-3%';html+='<br><strong>Đánh giá:</strong> '+bench+'<br><br><strong>Đề xuất:</strong><br>• '+(er<1?'Tăng nội dung tương tác (câu hỏi, poll, CTA rõ ràng)':'Duy trì chiến lược hiện tại, thử A/B test nội dung');html+=sugTags(['Dạng bài hiệu quả','Top bài viết','Tổng hợp nhanh']);return html}
+
+  if(/reaction|cảm xúc|like.*love|phân bổ.*react|so sánh.*react/i.test(ql)){if(!pd.length)return noData();var rs={Like:sum(pd,'reactions_like'),Love:sum(pd,'reactions_love'),Haha:sum(pd,'reactions_haha'),Wow:sum(pd,'reactions_wow'),Sad:sum(pd,'reactions_sad'),Angry:sum(pd,'reactions_angry')};var total=Object.values(rs).reduce(function(s,v){return s+v},0);var html='❤️ <strong>Phân bổ Reactions</strong> ('+pd.length+' ngày)<br><br>';var items=Object.entries(rs).filter(function(e){return e[1]>0}).sort(function(a,b){return b[1]-a[1]});html+=miniBarChart(items.map(function(e){return[e[0]+' ('+(total>0?(e[1]/total*100).toFixed(1):0)+'%)',e[1]]}));html+='<br><strong>Tổng:</strong> '+fN(total)+' reactions';if(rs.Like>0&&rs.Love===0&&rs.Haha===0)html+='<br><br>💡 <strong>Nhận xét:</strong> 100% là Like — cần nội dung gợi cảm xúc mạnh hơn để có Love/Wow';html+=sugTags(['Followers','Bài viết tốt nhất']);return html}
+
+  if(/dạng bài|loại bài|post type|phân tích.*bài|album|video|photo/i.test(ql)){if(!ps.length)return noDataPost();var tm={};ps.forEach(function(p){var t=p.post_type||'khác';if(!tm[t])tm[t]={c:0,e:0,cl:0,cm:0,sh:0};tm[t].c++;tm[t].e+=p.total_engagement||0;tm[t].cl+=p.clicks||0;tm[t].cm+=p.comments||0;tm[t].sh+=p.shares||0});var types=Object.entries(tm).sort(function(a,b){return(b[1].e/b[1].c)-(a[1].e/a[1].c)});var html='📋 <strong>Phân tích theo dạng bài</strong><br><br>';html+=miniTable(['Dạng','Số bài','TB tương tác','TB clicks','TB BL','TB CS'],types.map(function(t){return['<strong>'+t[0]+'</strong>',t[1].c,(t[1].e/t[1].c).toFixed(0),(t[1].cl/t[1].c).toFixed(0),(t[1].cm/t[1].c).toFixed(0),(t[1].sh/t[1].c).toFixed(0)]}));var best=types[0];html+='<br>🏅 <strong>Dạng hiệu quả nhất:</strong> '+best[0]+' (TB '+(best[1].e/best[1].c).toFixed(0)+' tương tác/bài)<br><br>💡 <strong>Đề xuất:</strong> Ưu tiên dạng <strong>'+best[0]+'</strong>.';html+=sugTags(['Top bài viết','Xu hướng followers','Xuất PDF']);return html}
+
+  if(/tổng hợp|tóm tắt|overview|summary|báo cáo nhanh|tình hình/i.test(ql)){if(!pd.length)return noData();var l=last(pd),f=pd[0];var fChange=l.followers-f.followers;var tE=sum(ps,'total_engagement');var er=l.followers>0?(l.post_engagements/l.followers*100).toFixed(2):0;var html='📊 <strong>Tổng hợp nhanh</strong> ('+pd.length+' ngày)<br><br>';html+=metricRows([['Followers hiện tại',fN(l.followers)],['Thay đổi followers',(fChange>=0?'+':'')+fN(fChange)],['Tổng bài viết',fN(ps.length)],['Tổng tương tác bài',fN(tE)],['TB tương tác/bài',ps.length?Math.round(tE/ps.length):0],['Tỷ lệ TT hiện tại',er+'%'],['Tổng xem trang',fN(sum(pd,'page_views'))],['Tổng xem video',fN(sum(pd,'video_views'))]]);html+='<br><strong>Đánh giá:</strong> ';if(fChange>0&&er>0.5)html+='<span style="color:#059669">Fanpage đang phát triển tích cực.</span>';else if(fChange<0)html+='<span style="color:#DC2626">⚠ Followers đang giảm.</span>';else html+='Fanpage ổn định.';html+=sugTags(['Dạng bài hiệu quả','Reactions','Xuất báo cáo PDF']);return html}
+
+  if(/xu hướng|trend|biến động|tăng.*giảm/i.test(ql)){if(pd.length<2)return'Cần ít nhất 2 ngày dữ liệu. Hiện có '+pd.length+' ngày.';var nDays=parseNDays(ql)||pd.length;var slice=pd.slice(-nDays);var html='📈 <strong>Xu hướng '+slice.length+' ngày</strong><br><br><strong>Followers:</strong>';html+=miniBarChart(slice.map(function(r){return[fDS(r.date),r.followers]}));html+='<br><strong>Tương tác:</strong>';html+=miniBarChart(slice.map(function(r){return[fDS(r.date),r.post_engagements]}));var fTrend=last(slice).followers-slice[0].followers;html+='<br><strong>Kết luận:</strong> Followers '+(fTrend>0?'<span style="color:#059669">↑ tăng '+fN(fTrend)+'</span>':fTrend<0?'<span style="color:#DC2626">↓ giảm '+fN(Math.abs(fTrend))+'</span>':'không đổi');html+=sugTags(['Tỷ lệ tương tác','Top bài viết']);return html}
+
+  if(/xem trang|page view|lượt xem/i.test(ql)){if(!pd.length)return noData();var html='👁️ <strong>Lượt xem trang</strong><br><br>';html+=metricRows([['Tổng ('+pd.length+' ngày)',fN(sum(pd,'page_views'))],['TB/ngày',avg(pd,'page_views')],['Cao nhất',fN(Math.max.apply(null,pd.map(function(r){return r.page_views||0})))],['Thấp nhất',fN(Math.min.apply(null,pd.map(function(r){return r.page_views||0})))]]);if(pd.length>1)html+='<br>'+miniBarChart(pd.slice(-7).map(function(r){return[fDS(r.date),r.page_views]}));return html}
+
+  if(/video|xem video/i.test(ql)){if(!pd.length)return noData();var tO=sum(pd,'video_views_organic'),tP=sum(pd,'video_views_paid'),tV=tO+tP;var html='🎬 <strong>Phân tích Video</strong><br><br>';html+=metricRows([['Tổng lượt xem',fN(tV)],['Tự nhiên',fN(tO)+(tV>0?' ('+(tO/tV*100).toFixed(1)+'%)':'')],['Trả phí',fN(tP)+(tV>0?' ('+(tP/tV*100).toFixed(1)+'%)':'')],['TB/ngày',avg(pd,'video_views')]]);return html}
+
+  if(/xuất|export|pdf|báo cáo.*file|tải.*báo cáo|in.*báo cáo/i.test(ql)){exportPDF();return'📄 <strong>Đang tạo báo cáo PDF...</strong><br>Cửa sổ in sẽ mở — chọn "Save as PDF" để lưu.'+sugTags(['Tổng hợp nhanh','Top bài viết'])}
+
+  // Strategic advice
+  if(/tư vấn|chiến lược|lời khuyên|đề xuất|strategy|advic|nên làm gì|cải thiện/i.test(ql)){
+    if(!pd.length&&!ps.length)return noData();
+    var html='🎯 <strong>Tư vấn chiến lược từ dữ liệu</strong><br><br>';
+    var advItems=[];
+    if(pd.length>=2){
+      var l=last(pd),f=pd[0],fc=l.followers-f.followers,dailyAvg=(fc/pd.length).toFixed(1);
+      if(fc<0)advItems.push('⛔ <strong>Followers giảm '+Math.abs(fc)+'</strong> — ưu tiên giữ chân: giảm tần suất bài quảng cáo, tăng bài giá trị (tips, how-to), chạy retargeting');
+      else if(parseFloat(dailyAvg)<1)advItems.push('⚠ Tăng trưởng chậm ('+dailyAvg+'/ngày) — chạy Page Like ads ngân sách nhỏ, tăng Reels/Video ngắn, collab cross-page');
+      else advItems.push('✅ Tăng trưởng tốt (+'+dailyAvg+'/ngày) — giữ nhịp, xây series cố định');
+    }
+    if(ps.length>=3){
+      var tm={};ps.forEach(function(p){var t=p.post_type||'?';if(!tm[t])tm[t]={c:0,e:0};tm[t].c++;tm[t].e+=p.total_engagement||0});
+      var best=Object.entries(tm).sort(function(a,b){return(b[1].e/b[1].c)-(a[1].e/a[1].c)})[0];
+      advItems.push('📋 Dạng <strong>'+best[0]+'</strong> hiệu quả nhất (TB '+Math.round(best[1].e/best[1].c)+' tương tác) — tăng tỷ trọng lên 50-60%');
+    }
+    if(ps.length>=1){
+      var tE=sum(ps,'total_engagement'),tSh=sum(ps,'shares'),tCm=sum(ps,'comments');
+      var shR=tE>0?(tSh/tE*100).toFixed(1):0;
+      if(parseFloat(shR)<5)advItems.push('🔄 Chia sẻ thấp ('+shR+'%) — thử: infographic, facts bất ngờ, "tag bạn bè", content tranh luận nhẹ');
+      var cmR=tE>0?(tCm/tE*100).toFixed(1):0;
+      if(parseFloat(cmR)<8)advItems.push('💬 Bình luận thấp ('+cmR+'%) — cần CTA rõ hơn: câu hỏi cuối bài, poll, "bạn chọn gì?"');
+    }
+    if(pd.length>=3&&ps.length>=1){
+      var ppd=ps.length/pd.length;
+      if(ppd<0.7)advItems.push('⏰ Đăng quá ít ('+( ppd*7).toFixed(1)+' bài/tuần) — tối thiểu 1 bài/ngày, lập content calendar trước 1 tuần');
+      else if(ppd>2)advItems.push('⏰ Đăng quá nhiều ('+(ppd*7).toFixed(1)+' bài/tuần) — giảm còn 7-14 bài/tuần, tăng chất lượng');
+    }
+    html+=advItems.map(function(a){return '<div style="padding:6px 0;border-bottom:1px solid #f0f2f5">'+a+'</div>'}).join('');
+    html+=sugTags(['Chấm điểm bài viết','So sánh giai đoạn','Xu hướng']);
+    return html;
+  }
+
+  // Post scoring
+  if(/chấm điểm|scoring|xếp hạng bài|đánh giá bài|điểm.*bài/i.test(ql)){
+    if(ps.length<2)return noDataPost();
+    var maxE=Math.max.apply(null,ps.map(function(p){return p.total_engagement||0}).concat([1]));
+    var maxCl=Math.max.apply(null,ps.map(function(p){return p.clicks||0}).concat([1]));
+    var maxCm=Math.max.apply(null,ps.map(function(p){return p.comments||0}).concat([1]));
+    var maxSh=Math.max.apply(null,ps.map(function(p){return p.shares||0}).concat([1]));
+    var scored=ps.map(function(p){
+      var sc=Math.round((p.total_engagement||0)/maxE*40+(p.clicks||0)/maxCl*20+(p.comments||0)/maxCm*20+(p.shares||0)/maxSh*20);
+      return{p:p,score:sc};
+    }).sort(function(a,b){return b.score-a.score}).slice(0,5);
+    var gradeF=function(s){return s>=80?'A+':s>=60?'A':s>=40?'B':s>=20?'C':'D'};
+    var html='⭐ <strong>Scoring Top 5 bài viết</strong><br><br>';
+    html+=miniTable(['#','Grade','Điểm','Loại','Nội dung','TT'],scored.map(function(s,i){
+      return ['<strong>'+(i+1)+'</strong>','<strong>'+gradeF(s.score)+'</strong>',s.score+'/100',s.p.post_type||'?',String(s.p.message_preview||'').substring(0,25)+'...',fN(s.p.total_engagement)];
+    }));
+    var avgScore=Math.round(scored.reduce(function(s,x){return s+x.score},0)/scored.length);
+    html+='<br><strong>Điểm trung bình Top 5:</strong> '+avgScore+'/100 — '+(avgScore>=60?'<span style="color:#059669">Chất lượng tốt</span>':avgScore>=40?'<span style="color:#D97706">Trung bình</span>':'<span style="color:#DC2626">Cần cải thiện</span>');
+    html+='<br><br>💡 <strong>Scoring dựa trên:</strong> Tương tác (40%), Clicks (20%), Bình luận (20%), Chia sẻ (20%)';
+    html+=sugTags(['Tư vấn chiến lược','Top bài viết','Dạng bài hiệu quả']);
+    return html;
+  }
+
+  // Period comparison
+  if(/so sánh tuần|so sánh tháng|tuần này.*trước|tháng này.*trước|so sánh giai đoạn|week.*vs|period/i.test(ql)){
+    if(pd.length<4)return'Cần ít nhất 4 ngày dữ liệu để so sánh giai đoạn.';
+    var half=Math.floor(pd.length/2);
+    var prev=pd.slice(0,half),curr=pd.slice(half);
+    function sSum(a,k){return a.reduce(function(s,r){return s+(Number(r[k])||0)},0)}
+    function sAvg(a,k){return a.length?sSum(a,k)/a.length:0}
+    function sPct(o,n){return o>0?((n-o)/o*100).toFixed(1):n>0?'+∞':'0'}
+    var metrics=[['Followers',sAvg(prev,'followers'),sAvg(curr,'followers')],['Tương tác',sAvg(prev,'post_engagements'),sAvg(curr,'post_engagements')],['Xem trang',sAvg(prev,'page_views'),sAvg(curr,'page_views')],['Video',sAvg(prev,'video_views'),sAvg(curr,'video_views')],['TT %',sAvg(prev,'engagement_rate'),sAvg(curr,'engagement_rate')]];
+    var html='⚖️ <strong>So sánh giai đoạn</strong><br>'+fD(tI(prev[0].date))+' → '+fD(tI(prev[prev.length-1].date))+' <strong>vs</strong> '+fD(tI(curr[0].date))+' → '+fD(tI(curr[curr.length-1].date))+'<br><br>';
+    html+=miniTable(['Chỉ số','Giai đoạn trước','Giai đoạn sau','Thay đổi'],metrics.map(function(m){
+      var pct=sPct(m[1],m[2]),v=parseFloat(pct);
+      var cls=v>0?'color:#059669':v<0?'color:#DC2626':'';
+      return [m[0],fN(Math.round(m[1])),fN(Math.round(m[2])),'<span style="'+cls+';font-weight:700">'+(v>0?'↑ +':'↓ ')+pct+'%</span>'];
+    }));
+    var fC=parseFloat(sPct(sAvg(prev,'followers'),sAvg(curr,'followers')));
+    var eC=parseFloat(sPct(sAvg(prev,'post_engagements'),sAvg(curr,'post_engagements')));
+    html+='<br><strong>Đánh giá:</strong> ';
+    if(fC>0&&eC>0)html+='<span style="color:#059669">Cả followers và tương tác đều tăng — đang đi đúng hướng.</span>';
+    else if(fC>0&&eC<0)html+='<span style="color:#D97706">Followers tăng nhưng tương tác giảm — cần xem lại chất lượng nội dung.</span>';
+    else if(fC<0&&eC>0)html+='<span style="color:#D97706">Tương tác tăng nhưng followers giảm — nội dung tốt nhưng chưa chuyển đổi thành follow.</span>';
+    else html+='<span style="color:#DC2626">Cả hai chỉ số đều giảm — cần review lại chiến lược tổng thể.</span>';
+    html+=sugTags(['Tư vấn chiến lược','Chấm điểm bài viết']);
+    return html;
+  }
+
+  if(/so sánh/i.test(ql)){if(pd.length<2)return'Cần ít nhất 2 ngày dữ liệu.';var l=last(pd),p=pd[pd.length-2];var html='⚖️ <strong>So sánh ngày gần nhất</strong><br>'+fD(tI(p.date))+' → '+fD(tI(l.date))+'<br><br>';var fields=[['Followers',p.followers,l.followers],['Tương tác',p.post_engagements,l.post_engagements],['Xem trang',p.page_views,l.page_views],['Video',p.video_views,l.video_views],['TT %',p.engagement_rate,l.engagement_rate]];html+=miniTable(['Chỉ số','Trước','Sau','Thay đổi'],fields.map(function(f){var diff=f[2]-f[1];var cls=diff>0?'color:#059669':diff<0?'color:#DC2626':'';return[f[0],fN(f[1]),fN(f[2]),'<span style="'+cls+'">'+(diff>0?'+':'')+fN(diff)+'</span>']}));return html}
+
+  if(/giúp|help|làm gì|hỏi gì|có thể/i.test(ql))return'🤖 <strong>Tôi có thể giúp bạn:</strong><br><br>• <strong>Tra cứu:</strong> Followers, tương tác, xem trang, video<br>• <strong>Phân tích:</strong> Xu hướng, so sánh, dạng bài hiệu quả<br>• <strong>Theo ngày:</strong> "Ngày 11/06", "hôm qua", "7 ngày"<br>• <strong>Top bài viết:</strong> Xếp hạng tương tác<br>• <strong>Xuất PDF:</strong> Tạo báo cáo tải về'+sugTags(['Tổng hợp nhanh','Followers','Bài viết tốt nhất','Reactions']);
+
+  if(/xin chào|chào|hi|hello|hey/i.test(ql))return'Chào bạn! 👋 Hãy hỏi bất kỳ điều gì về fanpage nhé!'+sugTags(['Tổng hợp nhanh','Followers hiện tại?','Giúp gì được?']);
+
+  return'Tôi chưa hiểu câu hỏi "<em>'+q+'</em>". Thử hỏi:<br>• <strong>Tư vấn chiến lược</strong> — lời khuyên dựa trên dữ liệu<br>• <strong>Chấm điểm bài viết</strong> — scoring & xếp hạng<br>• <strong>So sánh giai đoạn</strong> — trước vs sau<br>• Followers, tương tác, reactions, dạng bài<br>• Xu hướng, xuất PDF'+sugTags(['Tư vấn chiến lược','Chấm điểm bài viết','Tổng hợp nhanh']);
+}
+
+function noData(){return'⚠ Chưa có dữ liệu. Nhấn <strong>Tải lại</strong>.'}
+function noDataPost(){return'⚠ Chưa có bài viết. Nhấn <strong>Tải lại</strong>.'}
+
+// === PDF EXPORT ===
+function exportPDF(){var d=getFiltered(),pd=d.pd,ps=d.ps;var l=pd.length?last(pd):null;var w=window.open('','_blank');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Báo cáo Fanpage</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:40px;color:#1c1e21;max-width:800px;margin:0 auto}h1{font-size:22px;color:#ef4444;border-bottom:3px solid #ef4444;padding-bottom:10px}h2{font-size:16px;color:#7C3AED;margin-top:24px;border-left:4px solid #7C3AED;padding-left:10px}.meta{color:#65676b;font-size:12px;margin:8px 0 20px}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}th{background:#f0f2f5;padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid #e4e6eb}td{padding:7px 10px;border-bottom:1px solid #e4e6eb}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.kpi-item{background:#f7f8fa;border-radius:8px;padding:12px;text-align:center}.kpi-item .val{font-size:20px;font-weight:700;color:#e11d48}.kpi-item .label{font-size:11px;color:#65676b;margin-top:4px}.footer{margin-top:30px;padding-top:12px;border-top:1px solid #e4e6eb;font-size:11px;color:#999;text-align:center}@media print{body{padding:20px}}</style></head><body>';html+='<h1>📊 Báo cáo hiệu suất Fanpage</h1><div class="meta">Ngày tạo: '+new Date().toLocaleString('vi-VN')+' | Dữ liệu: '+pd.length+' ngày, '+ps.length+' bài viết</div>';if(l){html+='<h2>Tổng quan</h2><div class="kpi-grid"><div class="kpi-item"><div class="val">'+fN(l.followers)+'</div><div class="label">Followers</div></div><div class="kpi-item"><div class="val">'+fN(l.post_engagements)+'</div><div class="label">Tương tác</div></div><div class="kpi-item"><div class="val">'+fN(l.page_views)+'</div><div class="label">Xem trang</div></div><div class="kpi-item"><div class="val">'+fN(ps.length)+'</div><div class="label">Bài viết</div></div></div>'}if(pd.length){html+='<h2>Dữ liệu hàng ngày</h2><table><thead><tr><th>Ngày</th><th>Followers</th><th>Follows ròng</th><th>Tương tác</th><th>Xem trang</th><th>TT %</th><th>Video</th></tr></thead><tbody>';pd.slice().reverse().forEach(function(r){html+='<tr><td>'+fD(r.date)+'</td><td>'+fN(r.followers)+'</td><td style="color:'+(r.net_follows<0?'#DC2626':'#059669')+'">'+(r.net_follows>=0?'+':'')+fN(r.net_follows)+'</td><td>'+fN(r.post_engagements)+'</td><td>'+fN(r.page_views)+'</td><td>'+r.engagement_rate+'%</td><td>'+fN(r.video_views)+'</td></tr>'});html+='</tbody></table>'}if(ps.length){html+='<h2>Chi tiết bài viết</h2><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Clicks</th><th>React</th><th>BL</th><th>CS</th><th>Tổng TT</th><th>Link</th></tr></thead><tbody>';ps.forEach(function(p){html+='<tr><td>'+fD(tI(p.created_time))+'</td><td>'+(p.post_type||'?')+'</td><td>'+String(p.message_preview||'').substring(0,50)+'</td><td>'+fN(p.clicks)+'</td><td>'+fN(p.reactions_total)+'</td><td>'+fN(p.comments)+'</td><td>'+fN(p.shares)+'</td><td style="font-weight:700;color:#e11d48">'+fN(p.total_engagement)+'</td><td>'+(p.permalink_url?'<a href="'+p.permalink_url+'">Xem</a>':'—')+'</td></tr>'});html+='</tbody></table>'}html+='<div class="footer">Báo cáo tự động — Dashboard Fanpage Ver 2</div></body></html>';w.document.write(html);w.document.close();setTimeout(function(){w.print()},500)}
+
+// === SEND CHAT ===
+function sendChat(){
+  var q=inp.value.trim();if(!q)return;
+  addMsg(q,true);inp.value='';inp.style.height='40px';
+  showTyping();
+  setTimeout(function(){
+    hideTyping();
+    addMsg(processQuery(q),false);
+    renderSuggestions();
+    saveCurrentMessages();
+  },400+Math.random()*400);
+}
+
+// === EVENT HANDLERS ===
+document.getElementById('chatFab').addEventListener('click',function(){
+  isOpen=!isOpen;
+  popup.classList.toggle('open',isOpen);
+  if(isOpen){
+    loadConvs();
+    if(!conversations.length)createConv();
+    if(!activeConvId||!getConv(activeConvId)){activeConvId=conversations[0].id;saveConvs()}
+    var conv=getConv(activeConvId);
+    if(conv){renderMessages(conv.messages);titleEl.textContent=conv.name}
+    inp.focus();
+  } else {
+    saveCurrentMessages();
+    convPanel.classList.remove('open');
+  }
+});
+
+document.getElementById('chatClose').addEventListener('click',function(){saveCurrentMessages();isOpen=false;popup.classList.remove('open');convPanel.classList.remove('open')});
+
+document.getElementById('btnConvList').addEventListener('click',function(){renderConvList();convPanel.classList.toggle('open')});
+document.getElementById('btnConvBack').addEventListener('click',function(){convPanel.classList.remove('open')});
+
+document.getElementById('btnNewConv').addEventListener('click',function(){saveCurrentMessages();var nc=createConv();renderMessages(nc.messages);titleEl.textContent=nc.name;convPanel.classList.remove('open');inp.focus()});
+document.getElementById('btnNewConv2').addEventListener('click',function(){saveCurrentMessages();var nc=createConv();renderMessages(nc.messages);titleEl.textContent=nc.name;convPanel.classList.remove('open');inp.focus()});
+
+document.getElementById('chatSend').addEventListener('click',sendChat);
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
+inp.addEventListener('input',function(){this.style.height='40px';this.style.height=Math.min(this.scrollHeight,80)+'px'});
+document.addEventListener('click',function(e){if(e.target.classList.contains('tag-suggest')){inp.value=e.target.textContent;sendChat()}});
+})();
+</script>
+</body>
+</html>
