@@ -1091,7 +1091,7 @@ function loadData(){
     poD = posts.map(function(d){
       return {
         created_time: d.created_time, page_name: pageMap[d.page_id]||d.page_name||'',
-        message: d.message||'', post_type: d.type||'status',
+        message: d.message||'', message_preview: (d.message||'').substring(0,80), post_type: d.type||'status',
         reach: d.reach||0, impressions: d.impressions||0,
         total_engagement: (d.engagements||0)+(d.clicks||0), clicks: d.clicks||0,
         reactions_total: d.reactions||0, comments: d.comments||0,
@@ -1301,7 +1301,7 @@ function rPCards(ps){
     var cmPct=e>0?pc(p.comments||0,e):0;
     var sPct=e>0?pc(p.shares||0,e):0;
     return '<div class="post-card" style="margin-top:12px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span class="pt" style="margin:0"><i class="ti ti-photo" style="font-size:12px;vertical-align:-1px;margin-right:3px"></i>'+
-    (p.post_type||'?')+'</span><span class="page-badge"><span class="pb-avt" style="background:'+getPageColor(p.page_name)+'">'+p.page_name.charAt(0)+'</span>'+p.page_name+'</span></div><div class="pm">'+String(p.message_preview||'').substring(0,100)+'</div>'+
+    (p.post_type||'?')+'</span><span class="page-badge"><span class="pb-avt" style="background:'+getPageColor(p.page_name)+'">'+p.page_name.charAt(0)+'</span>'+p.page_name+'</span></div><div class="pm">'+(String(p.message_preview||p.message||'').substring(0,100)||'<span style="color:#999;font-style:italic">['+( p.post_type||'bài viết')+' không có caption]</span>')+'</div>'+
     (p.permalink_url?'<a href="'+p.permalink_url+'" target="_blank"><i class="ti ti-external-link"></i> Xem trên Facebook</a>':(CONFIG.MODE==='demo'?'<a href="#" class="demo-post-link" style="color:var(--g2);font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-top:6px"><i class="ti ti-external-link" style="font-size:14px"></i> Xem trên Facebook</a>':''))+
     '<div class="sr5"><div class="si"><div class="sv">'+fN(p.clicks)+'</div><div class="sl">Clicks</div></div>'+
     '<div class="si"><div class="sv">'+fN(r)+'</div><div class="sl">Reactions</div></div>'+
@@ -1373,7 +1373,7 @@ function rPT2(ps){
     var linkHtml=p.permalink_url?'<a href="'+p.permalink_url+'" target="_blank" style="color:#ef4444;text-decoration:none;white-space:nowrap"><i class="ti ti-external-link" style="font-size:14px;vertical-align:-1px"></i> Xem</a>':(CONFIG.MODE==='demo'?'<a href="#" class="demo-post-link" style="color:#ef4444;text-decoration:none;white-space:nowrap"><i class="ti ti-external-link" style="font-size:14px;vertical-align:-1px"></i> Xem</a>':'—');
     var rankIcon=idx<3?'<span style="font-size:13px;margin-right:2px">'+(['🥇','🥈','🥉'][idx])+'</span>':'';
     var pgColor=getPageColor(p.page_name);
-    return '<tr>'+(showPage?'<td><span class="page-badge"><span class="pb-avt" style="background:'+pgColor+'">'+p.page_name.charAt(0)+'</span>'+p.page_name+'</span></td>':'')+'<td>'+fD(tI(p.created_time))+'</td><td><span class="badge '+bc+'">'+(p.post_type||'?')+'</span></td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+String(p.message_preview||'').replace(/"/g,'&quot;')+'">'+rankIcon+String(p.message_preview||'').substring(0,35)+'</td><td>'+fN(p.clicks)+'</td><td>'+fN(p.reactions_total)+'</td><td>'+fN(p.comments)+'</td><td>'+fN(p.shares)+'</td><td style="font-weight:700;color:#e11d48">'+fN(e)+'</td><td><div style="display:flex;align-items:center;gap:5px"><div style="height:5px;border-radius:3px;background:#ef4444;width:'+sc+'%;min-width:2px;max-width:60px"></div>'+sc+'%</div></td><td>'+linkHtml+'</td></tr>';
+    return '<tr>'+(showPage?'<td><span class="page-badge"><span class="pb-avt" style="background:'+pgColor+'">'+p.page_name.charAt(0)+'</span>'+p.page_name+'</span></td>':'')+'<td>'+fD(tI(p.created_time))+'</td><td><span class="badge '+bc+'">'+(p.post_type||'?')+'</span></td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+String(p.message_preview||p.message||'').replace(/"/g,'&quot;')+'">'+rankIcon+(String(p.message_preview||p.message||'').substring(0,35)||'<span style="color:#999">—</span>')+'</td><td>'+fN(p.clicks)+'</td><td>'+fN(p.reactions_total)+'</td><td>'+fN(p.comments)+'</td><td>'+fN(p.shares)+'</td><td style="font-weight:700;color:#e11d48">'+fN(e)+'</td><td><div style="display:flex;align-items:center;gap:5px"><div style="height:5px;border-radius:3px;background:#ef4444;width:'+sc+'%;min-width:2px;max-width:60px"></div>'+sc+'%</div></td><td>'+linkHtml+'</td></tr>';
   }).join('')+'</tbody>';
 
   // Attach sort listeners
