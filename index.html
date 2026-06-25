@@ -1080,12 +1080,12 @@ function loadData(){
   // Fetch posts_detail + pages (lookup page_name)
   Promise.all([
     fetch(sbBase + 'posts_detail?select=*&order=created_time.desc&limit=200', {headers: sbHeaders}).then(function(r){ return r.json(); }),
-    fetch(sbBase + 'pages?select=page_id,page_name', {headers: sbHeaders}).then(function(r){ return r.json(); })
+    fetch(sbBase + 'pages?select=id,page_name', {headers: sbHeaders}).then(function(r){ return r.json(); })
   ]).then(function(results){
     var posts = Array.isArray(results[0]) ? results[0] : [];
     var pages = Array.isArray(results[1]) ? results[1] : [];
     var pageMap = {};
-    pages.forEach(function(p){ pageMap[p.page_id] = p.page_name; });
+    pages.forEach(function(p){ pageMap[p.id] = p.page_name; });
 
     poD = posts.map(function(d){
       return {
