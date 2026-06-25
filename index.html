@@ -1641,7 +1641,7 @@ if (checkAuth()) { loadData(); }
 .msg{max-width:88%;animation:msgIn 0.25s ease}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .msg-bot{align-self:flex-start}.msg-user{align-self:flex-end}
-.msg-bubble{padding:8px 12px;border-radius:14px;font-size:12px;line-height:1.55;word-wrap:break-word}
+.msg-bubble{padding:10px 14px;border-radius:14px;font-size:12.5px;line-height:1.6;word-wrap:break-word}
 .msg-bot .msg-bubble{background:#fff;color:#1c1e21;border:1px solid #e4e6eb;border-top-left-radius:4px}
 .msg-user .msg-bubble{background:linear-gradient(135deg,#ef4444,#ec4899);color:#fff;border-top-right-radius:4px}
 .msg-time{font-size:10px;color:#999;margin-top:3px}
@@ -1655,6 +1655,18 @@ if (checkAuth()) { loadData(); }
 .msg-bubble .metric-val{font-weight:700;color:#e11d48}
 .msg-bubble .tag-suggest{display:inline-block;background:#EDE9FE;color:#7C3AED;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px;cursor:pointer;transition:all 0.15s}
 .msg-bubble .tag-suggest:hover{background:#7C3AED;color:#fff}
+.msg-bubble .chat-section-title{font-weight:700;font-size:12.5px;margin:10px 0 4px;padding-bottom:3px;border-bottom:2px solid #f0f2f5;display:flex;align-items:center;gap:5px}
+.msg-bubble .chat-section-title.clr-red{color:#e11d48}.msg-bubble .chat-section-title.clr-purple{color:#7C3AED}
+.msg-bubble .chat-bullet{padding:3px 0 3px 10px;border-left:2.5px solid #e4e6eb;margin:3px 0;font-size:12px;line-height:1.55}
+.msg-bubble .chat-bullet:hover{border-left-color:#ef4444}
+.msg-bubble .chat-num{padding:3px 0 3px 10px;border-left:2.5px solid #EDE9FE;margin:3px 0;font-size:12px;line-height:1.55}
+.msg-bubble .inline-chart{margin:8px 0;background:#f9fafb;border-radius:8px;padding:8px 10px;border:1px solid #f0f2f5}
+.msg-bubble .inline-chart .chart-title{font-size:11px;font-weight:600;color:#65676b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px}
+.msg-bubble .inline-chart .chart-row{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:11.5px}
+.msg-bubble .inline-chart .chart-label{min-width:80px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1c1e21;font-weight:500;flex-shrink:0}
+.msg-bubble .inline-chart .chart-bar-wrap{flex:1;height:16px;background:#f0f2f5;border-radius:4px;overflow:hidden;position:relative}
+.msg-bubble .inline-chart .chart-bar{height:100%;border-radius:4px;transition:width 0.6s ease;min-width:2px}
+.msg-bubble .inline-chart .chart-val{min-width:45px;text-align:right;font-weight:600;font-size:11px;color:#e11d48;flex-shrink:0}
 .chat-suggest{padding:6px 12px;display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid #f0f2f5;background:#fff;flex-shrink:0;align-items:center}
 .chat-suggest.hidden .sug-items{display:none}
 .chat-suggest .sug-toggle{width:26px;height:26px;border-radius:50%;border:1px solid #e4e6eb;background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:#999;transition:all 0.2s;flex-shrink:0}
@@ -1917,16 +1929,48 @@ function prepareDataForAI(){
   });
   return{pageData:recentPd,postData:topPs,totalDays:d.pd.length,totalPosts:d.ps.length,pageName:d.pageName};
 }
+var CHART_COLORS=['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
+function renderChart(block){
+  var lines=block.trim().split('\n');
+  var headerMatch=lines[0].match(/^\[CHART:(\w+):(.+)\]$/);
+  if(!headerMatch)return '';
+  var title=headerMatch[2];
+  var rows=[];var maxVal=0;
+  for(var i=1;i<lines.length;i++){
+    if(lines[i].indexOf('[/CHART]')>-1)break;
+    var parts=lines[i].split('|');
+    if(parts.length>=2){var v=parseFloat(parts[1]);if(!isNaN(v)){rows.push({label:parts[0].trim(),value:v});if(v>maxVal)maxVal=v}}
+  }
+  if(!rows.length)return '';
+  var html='<div class="inline-chart"><div class="chart-title">'+title+'</div>';
+  rows.forEach(function(r,idx){
+    var pct=maxVal>0?Math.round(r.value/maxVal*100):0;
+    var color=CHART_COLORS[idx%CHART_COLORS.length];
+    html+='<div class="chart-row"><span class="chart-label">'+r.label+'</span><div class="chart-bar-wrap"><div class="chart-bar" style="width:'+pct+'%;background:'+color+'"></div></div><span class="chart-val">'+r.value+'</span></div>';
+  });
+  html+='</div>';
+  return html;
+}
 function md2html(t){
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+  // Extract and replace chart blocks first (before escaping)
+  var charts=[];
+  t=t.replace(/\[CHART:\w+:[^\]]+\][\s\S]*?\[\/CHART\]/g,function(match){
+    charts.push(match);return '%%CHART_'+( charts.length-1)+'%%';
+  });
+  // Escape HTML
+  t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Markdown formatting
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.+?)\*/g,'<em>$1</em>')
     .replace(/`(.+?)`/g,'<code style="background:#f0f2f5;padding:1px 4px;border-radius:3px;font-size:12px">$1</code>')
-    .replace(/^### (.+)$/gm,'<div style="font-weight:700;font-size:12px;margin:6px 0 3px;color:#7C3AED">$1</div>')
-    .replace(/^## (.+)$/gm,'<div style="font-weight:700;font-size:12.5px;margin:8px 0 3px;color:#e11d48">$1</div>')
-    .replace(/^[\-•] (.+)$/gm,'<div style="padding:1px 0 1px 10px;border-left:2px solid #e4e6eb;margin:1px 0;font-size:12px">$1</div>')
-    .replace(/^\d+\.\s(.+)$/gm,'<div style="padding:1px 0 1px 10px;border-left:2px solid #e4e6eb;margin:1px 0;font-size:12px">$1</div>')
-    .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+    .replace(/^### (.+)$/gm,'<div class="chat-section-title clr-purple">$1</div>')
+    .replace(/^## (.+)$/gm,'<div class="chat-section-title clr-red">$1</div>')
+    .replace(/^[\-•] (.+)$/gm,'<div class="chat-bullet">$1</div>')
+    .replace(/^\d+\.\s(.+)$/gm,'<div class="chat-num">$1</div>')
+    .replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
+  // Re-insert rendered charts
+  charts.forEach(function(c,i){t=t.replace('%%CHART_'+i+'%%',renderChart(c))});
+  return t;
 }
 // AI-powered sendChat
 async function sendChat(){
