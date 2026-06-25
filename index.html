@@ -1658,4 +1658,392 @@ if (checkAuth()) { loadData(); }
 .chat-suggest{padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #f0f2f5;background:#fff;flex-shrink:0}
 .chat-suggest button{padding:5px 12px;border-radius:16px;border:1px solid #e4e6eb;background:#fff;font-size:11px;cursor:pointer;color:#65676b;transition:all 0.2s;white-space:nowrap}
 .chat-suggest button:hover{background:#f0f2f5;border-color:#ccc;color:#1c1e21}
-.chat-input{display:flex;padding:12px 16px;border-top:1px solid #
+.chat-input{display:flex;padding:12px 16px;border-top:1px solid #e4e6eb;gap:8px;background:#fff;align-items:flex-end;flex-shrink:0}
+.chat-input textarea{flex:1;border:1px solid #e4e6eb;border-radius:12px;padding:10px 14px;font-size:13px;resize:none;outline:none;max-height:80px;min-height:40px;font-family:inherit;line-height:1.4;transition:border-color 0.2s}
+.chat-input textarea:focus{border-color:#ef4444}
+.chat-input button{width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(135deg,#ef4444,#ec4899);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s;flex-shrink:0}
+.chat-input button:hover{transform:scale(1.05)}
+.typing{display:flex;gap:4px;padding:8px 14px;align-items:center}
+.typing span{width:7px;height:7px;border-radius:50%;background:#ccc;animation:typDot 1.2s ease infinite}
+.typing span:nth-child(2){animation-delay:0.2s}.typing span:nth-child(3){animation-delay:0.4s}
+@keyframes typDot{0%,60%,100%{opacity:0.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.conv-panel{position:absolute;top:0;left:0;right:0;bottom:0;background:#fff;z-index:10;display:none;flex-direction:column;animation:convSlide 0.25s ease}
+.conv-panel.open{display:flex}
+@keyframes convSlide{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.conv-head{background:linear-gradient(135deg,#f97316,#ef4444,#ec4899,#a855f7);background-size:200% 200%;animation:gs 6s ease infinite;padding:14px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.conv-head h3{font-size:14px;font-weight:600}
+.conv-head-r{display:flex;gap:4px}
+.conv-head-r button{background:rgba(255,255,255,0.15);border:none;border-radius:8px;height:32px;cursor:pointer;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0 12px;gap:4px}
+.conv-head-r button:hover{background:rgba(255,255,255,0.3)}
+.conv-list{flex:1;overflow-y:auto;padding:8px}
+.conv-list::-webkit-scrollbar{width:4px}
+.conv-list::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+.conv-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;margin-bottom:2px}
+.conv-item:hover{background:#f7f8fa}
+.conv-item.active{background:#FEF2F2;border-color:#FECACA}
+.conv-item .conv-icon{width:36px;height:36px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:16px;color:#7C3AED;flex-shrink:0}
+.conv-item.active .conv-icon{background:linear-gradient(135deg,#ef4444,#ec4899);color:#fff}
+.conv-item .conv-info{flex:1;min-width:0}
+.conv-item .conv-name{font-size:13px;font-weight:500;color:#1c1e21;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-item .conv-meta{font-size:11px;color:#65676b;margin-top:2px;display:flex;gap:8px}
+.conv-item .conv-preview{font-size:11px;color:#999;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-item .conv-del{width:28px;height:28px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#999;font-size:14px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.15s;flex-shrink:0}
+.conv-item:hover .conv-del{opacity:1}
+.conv-item .conv-del:hover{background:#FEE2E2;color:#DC2626}
+.conv-empty{text-align:center;padding:40px 20px;color:#999;font-size:13px}
+@media(max-width:500px){.chat-popup{width:calc(100vw - 16px);right:8px;bottom:80px;height:70vh}}
+</style>
+
+<button class="chat-fab" id="chatFab" title="Trợ lý AI">
+  <i class="ti ti-message-chatbot" style="font-size:26px;color:#fff"></i>
+</button>
+
+<div class="chat-popup" id="chatPopup">
+  <div class="chat-head">
+    <div class="chat-head-l">
+      <div class="av"><i class="ti ti-robot"></i></div>
+      <div><h3 id="chatTitle">Trợ lý phân tích</h3><div class="st">Sẵn sàng hỗ trợ</div></div>
+    </div>
+    <div class="chat-head-r">
+      <button id="btnConvList" title="Danh sách hội thoại"><i class="ti ti-layout-sidebar-left-collapse"></i></button>
+      <button id="btnNewConv" title="Hội thoại mới"><i class="ti ti-plus"></i></button>
+      <button id="chatClose" title="Đóng"><i class="ti ti-x"></i></button>
+    </div>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-suggest" id="chatSug"></div>
+  <div class="chat-input">
+    <textarea id="chatIn" placeholder="Hỏi về dữ liệu fanpage..." rows="1"></textarea>
+    <button id="chatSend"><i class="ti ti-send"></i></button>
+  </div>
+  <div class="conv-panel" id="convPanel">
+    <div class="conv-head">
+      <h3><i class="ti ti-messages" style="margin-right:6px;font-size:16px;vertical-align:-2px"></i>Hội thoại</h3>
+      <div class="conv-head-r">
+        <button id="btnNewConv2"><i class="ti ti-plus"></i> Mới</button>
+        <button id="btnConvBack"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div class="conv-list" id="convList"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+var STORE_KEY='fpDash_conversations';
+var ACTIVE_KEY='fpDash_activeConv';
+var body=document.getElementById('chatBody');
+var inp=document.getElementById('chatIn');
+var popup=document.getElementById('chatPopup');
+var sugBox=document.getElementById('chatSug');
+var convPanel=document.getElementById('convPanel');
+var convListEl=document.getElementById('convList');
+var titleEl=document.getElementById('chatTitle');
+var isOpen=false;
+
+var conversations=[];
+var activeConvId=null;
+
+var SUGGESTIONS=['Tư vấn chiến lược','Chấm điểm bài viết','So sánh tuần này vs trước','Followers hiện tại?','Bài viết tốt nhất?','Tổng hợp nhanh','Xuất báo cáo PDF'];
+var WELCOME_MSG='Xin chào! 👋 Tôi là <strong>trợ lý phân tích</strong> dữ liệu fanpage.<br><br>Hỏi tôi bất kỳ điều gì về hiệu suất fanpage — followers, tương tác, bài viết, xu hướng... Tôi sẽ phân tích trực tiếp từ dữ liệu đã tải.';
+
+function saveConvs(){try{localStorage.setItem(STORE_KEY,JSON.stringify(conversations));localStorage.setItem(ACTIVE_KEY,activeConvId||'')}catch(e){}}
+function loadConvs(){try{var s=localStorage.getItem(STORE_KEY);if(s)conversations=JSON.parse(s);var a=localStorage.getItem(ACTIVE_KEY);if(a)activeConvId=a}catch(e){conversations=[];activeConvId=null}}
+
+function genId(){return 'c_'+Date.now()+'_'+Math.random().toString(36).substr(2,5)}
+function fmtDate(ts){var d=new Date(ts);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function autoName(msgs){
+  var userMsgs=msgs.filter(function(m){return m.isUser});
+  if(!userMsgs.length)return 'Hội thoại mới';
+  var first=userMsgs[0].text;
+  var clean=first.replace(/<[^>]*>/g,'').trim();
+  if(clean.length<=30)return clean;
+  var truncated=clean.substring(0,30);
+  var lastSpace=truncated.lastIndexOf(' ');
+  if(lastSpace>15)truncated=truncated.substring(0,lastSpace);
+  return truncated+'...';
+}
+
+function getConv(id){return conversations.find(function(c){return c.id===id})||null}
+
+function createConv(){
+  var conv={id:genId(),name:'Hội thoại mới',messages:[{html:WELCOME_MSG,isUser:false,time:nowStr(),text:WELCOME_MSG}],created:Date.now(),updated:Date.now()};
+  conversations.unshift(conv);
+  activeConvId=conv.id;
+  saveConvs();
+  return conv;
+}
+
+function switchConv(id){
+  saveCurrentMessages();
+  activeConvId=id;
+  var conv=getConv(id);
+  if(!conv)return;
+  renderMessages(conv.messages);
+  titleEl.textContent=conv.name;
+  saveConvs();
+}
+
+function saveCurrentMessages(){
+  if(!activeConvId)return;
+  var conv=getConv(activeConvId);
+  if(!conv)return;
+  var msgs=[];
+  var divs=body.querySelectorAll('.msg');
+  divs.forEach(function(div){
+    var isUser=div.classList.contains('msg-user');
+    var bubble=div.querySelector('.msg-bubble');
+    var timeEl=div.querySelector('.msg-time');
+    if(bubble)msgs.push({html:bubble.innerHTML,isUser:isUser,time:timeEl?timeEl.textContent:'',text:bubble.textContent||''});
+  });
+  conv.messages=msgs;
+  conv.updated=Date.now();
+  if(conv.name==='Hội thoại mới'){conv.name=autoName(msgs)}
+  titleEl.textContent=conv.name;
+  saveConvs();
+}
+
+function deleteConv(id){
+  conversations=conversations.filter(function(c){return c.id!==id});
+  if(activeConvId===id){
+    if(conversations.length){switchConv(conversations[0].id)}
+    else{var nc=createConv();renderMessages(nc.messages);titleEl.textContent=nc.name}
+  }
+  saveConvs();
+  renderConvList();
+}
+
+function nowStr(){var d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function renderMessages(msgs){
+  body.innerHTML='';
+  msgs.forEach(function(m){
+    var div=document.createElement('div');
+    div.className='msg '+(m.isUser?'msg-user':'msg-bot');
+    div.innerHTML='<div class="msg-bubble">'+m.html+'</div><div class="msg-time">'+(m.time||'')+'</div>';
+    body.appendChild(div);
+  });
+  body.scrollTop=body.scrollHeight;
+  renderSuggestions();
+}
+
+function addMsg(html,isUser){
+  var div=document.createElement('div');
+  div.className='msg '+(isUser?'msg-user':'msg-bot');
+  div.innerHTML='<div class="msg-bubble">'+html+'</div><div class="msg-time">'+nowStr()+'</div>';
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+}
+
+function showTyping(){var div=document.createElement('div');div.className='msg msg-bot';div.id='typInd';div.innerHTML='<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';body.appendChild(div);body.scrollTop=body.scrollHeight}
+function hideTyping(){var t=document.getElementById('typInd');if(t)t.remove()}
+
+function renderSuggestions(items){
+  sugBox.innerHTML='';
+  (items||SUGGESTIONS).forEach(function(s){
+    var b=document.createElement('button');b.textContent=s;
+    b.addEventListener('click',function(){inp.value=s;sendChat()});
+    sugBox.appendChild(b);
+  });
+}
+
+function renderConvList(){
+  if(!conversations.length){convListEl.innerHTML='<div class="conv-empty"><i class="ti ti-messages" style="font-size:32px;display:block;margin-bottom:8px;color:#ccc"></i>Chưa có hội thoại nào</div>';return}
+  convListEl.innerHTML='';
+  conversations.forEach(function(c){
+    var item=document.createElement('div');
+    item.className='conv-item'+(c.id===activeConvId?' active':'');
+    var msgCount=c.messages?c.messages.filter(function(m){return m.isUser}).length:0;
+    var preview='';
+    if(c.messages&&c.messages.length){var lastMsg=c.messages[c.messages.length-1];preview=(lastMsg.text||'').replace(/<[^>]*>/g,'').substring(0,40)}
+    item.innerHTML='<div class="conv-icon"><i class="ti ti-message-circle"></i></div><div class="conv-info"><div class="conv-name">'+c.name+'</div><div class="conv-meta"><span>'+fmtDate(c.updated)+'</span><span>'+msgCount+' câu hỏi</span></div>'+(preview?'<div class="conv-preview">'+preview+'</div>':'')+'</div><button class="conv-del" title="Xóa"><i class="ti ti-trash"></i></button>';
+    item.addEventListener('click',function(e){
+      if(e.target.closest('.conv-del'))return;
+      switchConv(c.id);
+      convPanel.classList.remove('open');
+    });
+    item.querySelector('.conv-del').addEventListener('click',function(e){
+      e.stopPropagation();
+      deleteConv(c.id);
+    });
+    convListEl.appendChild(item);
+  });
+}
+
+function getFiltered(){var pg=document.getElementById('pf').value;var pd=pg==='all'?pD.slice():pD.filter(function(r){return r.page_name===pg});var ps=pg==='all'?poD.slice():poD.filter(function(r){return r.page_name===pg});return{pd:pd,ps:ps}}
+function getByDate(pd,ds){return pd.filter(function(r){return tI(r.date)===ds})}
+function last(a){return a.length?a[a.length-1]:null}
+function sum(a,k){return a.reduce(function(s,r){return s+(Number(r[k])||0)},0)}
+function avg(a,k){return a.length?(sum(a,k)/a.length).toFixed(1):0}
+function miniTable(h,rows){var s='<table><thead><tr>'+h.map(function(c){return'<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>';rows.forEach(function(r){s+='<tr>'+r.map(function(c){return'<td>'+c+'</td>'}).join('')+'</tr>'});return s+'</tbody></table>'}
+function metricRows(items){return'<div>'+items.map(function(m){return'<div class="metric-row"><span>'+m[0]+'</span><span class="metric-val">'+m[1]+'</span></div>'}).join('')+'</div>'}
+function miniBarChart(items,maxVal){if(!maxVal)maxVal=Math.max.apply(null,items.map(function(i){return i[1]}));return items.map(function(i){var pct=maxVal>0?(i[1]/maxVal*100):0;return'<div style="margin:4px 0"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span>'+i[0]+'</span><span style="font-weight:600">'+fN(i[1])+'</span></div><div class="mini-bar" style="width:'+pct+'%"></div></div>'}).join('')}
+function sugTags(items){return'<div style="margin-top:8px">'+items.map(function(s){return'<span class="tag-suggest">'+s+'</span>'}).join('')+'</div>'}
+
+function parseDateRef(q){var today=new Date();if(/hôm nay|hnay|today/i.test(q))return tI(today.toISOString());if(/hôm qua|yesterday/i.test(q)){var y=new Date(today);y.setDate(y.getDate()-1);return tI(y.toISOString())}var dm=q.match(/ngày\s*(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{4}))?/);if(dm){var yr=dm[3]||today.getFullYear();return yr+'-'+String(dm[2]).padStart(2,'0')+'-'+String(dm[1]).padStart(2,'0')}return null}
+function parseNDays(q){var m=q.match(/(\d+)\s*ngày/);if(m)return parseInt(m[1]);if(/tuần|7 ngày|week/i.test(q))return 7;if(/tháng|30 ngày|month/i.test(q))return 30;return null}
+
+function processQuery(q){
+  var d=getFiltered(),pd=d.pd,ps=d.ps,ql=q.toLowerCase();
+
+  var dateRef=parseDateRef(ql);
+  if(dateRef&&pd.length){var dayData=getByDate(pd,dateRef);var dayPosts=ps.filter(function(p){return tI(p.created_time)===dateRef});if(!dayData.length&&!dayPosts.length)return'Không có dữ liệu cho ngày <strong>'+fD(dateRef)+'</strong>. Dữ liệu hiện có từ <strong>'+fD(tI(pd[0].date))+'</strong> đến <strong>'+fD(tI(last(pd).date))+'</strong>.';var r=dayData[0];var html='📅 <strong>Dữ liệu ngày '+fD(dateRef)+'</strong>';if(r)html+=metricRows([['Followers',fN(r.followers)],['Follows ròng',(r.net_follows>=0?'+':'')+fN(r.net_follows)],['Tương tác',fN(r.post_engagements)],['Xem trang',fN(r.page_views)],['Đang nói về',fN(r.talking_about)],['Video views',fN(r.video_views)],['Tỷ lệ TT',r.engagement_rate+'%']]);if(dayPosts.length)html+='<br>📝 <strong>'+dayPosts.length+' bài viết</strong> — tổng tương tác: <strong>'+fN(sum(dayPosts,'total_engagement'))+'</strong>';return html}
+
+  if(/follower|người theo dõi|fan|theo dõi/i.test(ql)){if(!pd.length)return noData();var l=last(pd);var nDays=parseNDays(ql)||pd.length;var slice=pd.slice(-nDays);var first=slice[0],lastR=last(slice);var change=lastR.followers-first.followers;var html='👥 <strong>Phân tích Followers</strong><br><br>';html+=metricRows([['Hiện tại',fN(lastR.followers)],['Thay đổi ('+slice.length+' ngày)',(change>=0?'+':'')+fN(change)],['TB follows ròng/ngày',avg(slice,'net_follows')],['Tổng follows mới',fN(sum(slice,'new_follows'))],['Tổng bỏ theo dõi',fN(sum(slice,'unfollows'))]]);if(slice.length>1){html+='<br><strong>Xu hướng:</strong>';html+=miniBarChart(slice.slice(-7).map(function(r){return[fDS(r.date),r.net_follows]}))}html+=sugTags(['So sánh reactions','Bài viết tốt nhất','Tỷ lệ tương tác']);return html}
+
+  if(/bài viết.*tốt|bài.*cao nhất|top.*bài|best.*post|bài.*nhiều.*tương tác|bài viết nào/i.test(ql)){if(!ps.length)return noDataPost();var top=ps.slice().sort(function(a,b){return(b.total_engagement||0)-(a.total_engagement||0)}).slice(0,5);var html='🏆 <strong>Top '+top.length+' bài viết tương tác cao nhất</strong><br><br>';html+=miniTable(['#','Loại','Tương tác','Clicks','React','BL','CS'],top.map(function(p,i){return['<strong>'+(i+1)+'</strong>',p.post_type||'?',fN(p.total_engagement),fN(p.clicks),fN(p.reactions_total),fN(p.comments),fN(p.shares)]}));html+='<br>';top.slice(0,2).forEach(function(p,i){html+='<br>📝 <strong>#'+(i+1)+':</strong> '+String(p.message_preview||p.message||'').substring(0,80)+'...';if(p.permalink_url)html+=' <a href="'+p.permalink_url+'" target="_blank" style="color:#ef4444">↗ Xem</a>'});html+=sugTags(['Phân tích dạng bài','Xu hướng followers','Xuất báo cáo PDF']);return html}
+
+  if(/tỷ lệ tương tác|engagement.*rate|tỉ lệ tt|tt %/i.test(ql)){if(!pd.length)return noData();var l=last(pd);var er=l.followers>0?(l.post_engagements/l.followers*100).toFixed(2):0;var avgER=avg(pd,'engagement_rate');var maxER=Math.max.apply(null,pd.map(function(r){return r.engagement_rate||0}));var minER=Math.min.apply(null,pd.map(function(r){return r.engagement_rate||0}));var html='📊 <strong>Phân tích tỷ lệ tương tác</strong><br><br>';html+=metricRows([['Hiện tại',er+'%'],['Trung bình ('+pd.length+' ngày)',avgER+'%'],['Cao nhất',maxER.toFixed(2)+'%'],['Thấp nhất',minER.toFixed(2)+'%']]);var bench=er>1?'<span style="color:#059669">✓ Tốt</span> (benchmark: 1-3%)':er>0.5?'<span style="color:#D97706">○ Trung bình</span>':'<span style="color:#DC2626">⚠ Thấp</span> — benchmark ngành 1-3%';html+='<br><strong>Đánh giá:</strong> '+bench+'<br><br><strong>Đề xuất:</strong><br>• '+(er<1?'Tăng nội dung tương tác (câu hỏi, poll, CTA rõ ràng)':'Duy trì chiến lược hiện tại, thử A/B test nội dung');html+=sugTags(['Dạng bài hiệu quả','Top bài viết','Tổng hợp nhanh']);return html}
+
+  if(/reaction|cảm xúc|like.*love|phân bổ.*react|so sánh.*react/i.test(ql)){if(!pd.length)return noData();var rs={Like:sum(pd,'reactions_like'),Love:sum(pd,'reactions_love'),Haha:sum(pd,'reactions_haha'),Wow:sum(pd,'reactions_wow'),Sad:sum(pd,'reactions_sad'),Angry:sum(pd,'reactions_angry')};var total=Object.values(rs).reduce(function(s,v){return s+v},0);var html='❤️ <strong>Phân bổ Reactions</strong> ('+pd.length+' ngày)<br><br>';var items=Object.entries(rs).filter(function(e){return e[1]>0}).sort(function(a,b){return b[1]-a[1]});html+=miniBarChart(items.map(function(e){return[e[0]+' ('+(total>0?(e[1]/total*100).toFixed(1):0)+'%)',e[1]]}));html+='<br><strong>Tổng:</strong> '+fN(total)+' reactions';if(rs.Like>0&&rs.Love===0&&rs.Haha===0)html+='<br><br>💡 <strong>Nhận xét:</strong> 100% là Like — cần nội dung gợi cảm xúc mạnh hơn để có Love/Wow';html+=sugTags(['Followers','Bài viết tốt nhất']);return html}
+
+  if(/dạng bài|loại bài|post type|phân tích.*bài|album|video|photo/i.test(ql)){if(!ps.length)return noDataPost();var tm={};ps.forEach(function(p){var t=p.post_type||'khác';if(!tm[t])tm[t]={c:0,e:0,cl:0,cm:0,sh:0};tm[t].c++;tm[t].e+=p.total_engagement||0;tm[t].cl+=p.clicks||0;tm[t].cm+=p.comments||0;tm[t].sh+=p.shares||0});var types=Object.entries(tm).sort(function(a,b){return(b[1].e/b[1].c)-(a[1].e/a[1].c)});var html='📋 <strong>Phân tích theo dạng bài</strong><br><br>';html+=miniTable(['Dạng','Số bài','TB tương tác','TB clicks','TB BL','TB CS'],types.map(function(t){return['<strong>'+t[0]+'</strong>',t[1].c,(t[1].e/t[1].c).toFixed(0),(t[1].cl/t[1].c).toFixed(0),(t[1].cm/t[1].c).toFixed(0),(t[1].sh/t[1].c).toFixed(0)]}));var best=types[0];html+='<br>🏅 <strong>Dạng hiệu quả nhất:</strong> '+best[0]+' (TB '+(best[1].e/best[1].c).toFixed(0)+' tương tác/bài)<br><br>💡 <strong>Đề xuất:</strong> Ưu tiên dạng <strong>'+best[0]+'</strong>.';html+=sugTags(['Top bài viết','Xu hướng followers','Xuất PDF']);return html}
+
+  if(/tổng hợp|tóm tắt|overview|summary|báo cáo nhanh|tình hình/i.test(ql)){if(!pd.length)return noData();var l=last(pd),f=pd[0];var fChange=l.followers-f.followers;var tE=sum(ps,'total_engagement');var er=l.followers>0?(l.post_engagements/l.followers*100).toFixed(2):0;var html='📊 <strong>Tổng hợp nhanh</strong> ('+pd.length+' ngày)<br><br>';html+=metricRows([['Followers hiện tại',fN(l.followers)],['Thay đổi followers',(fChange>=0?'+':'')+fN(fChange)],['Tổng bài viết',fN(ps.length)],['Tổng tương tác bài',fN(tE)],['TB tương tác/bài',ps.length?Math.round(tE/ps.length):0],['Tỷ lệ TT hiện tại',er+'%'],['Tổng xem trang',fN(sum(pd,'page_views'))],['Tổng xem video',fN(sum(pd,'video_views'))]]);html+='<br><strong>Đánh giá:</strong> ';if(fChange>0&&er>0.5)html+='<span style="color:#059669">Fanpage đang phát triển tích cực.</span>';else if(fChange<0)html+='<span style="color:#DC2626">⚠ Followers đang giảm.</span>';else html+='Fanpage ổn định.';html+=sugTags(['Dạng bài hiệu quả','Reactions','Xuất báo cáo PDF']);return html}
+
+  if(/xu hướng|trend|biến động|tăng.*giảm/i.test(ql)){if(pd.length<2)return'Cần ít nhất 2 ngày dữ liệu. Hiện có '+pd.length+' ngày.';var nDays=parseNDays(ql)||pd.length;var slice=pd.slice(-nDays);var html='📈 <strong>Xu hướng '+slice.length+' ngày</strong><br><br><strong>Followers:</strong>';html+=miniBarChart(slice.map(function(r){return[fDS(r.date),r.followers]}));html+='<br><strong>Tương tác:</strong>';html+=miniBarChart(slice.map(function(r){return[fDS(r.date),r.post_engagements]}));var fTrend=last(slice).followers-slice[0].followers;html+='<br><strong>Kết luận:</strong> Followers '+(fTrend>0?'<span style="color:#059669">↑ tăng '+fN(fTrend)+'</span>':fTrend<0?'<span style="color:#DC2626">↓ giảm '+fN(Math.abs(fTrend))+'</span>':'không đổi');html+=sugTags(['Tỷ lệ tương tác','Top bài viết']);return html}
+
+  if(/xem trang|page view|lượt xem/i.test(ql)){if(!pd.length)return noData();var html='👁️ <strong>Lượt xem trang</strong><br><br>';html+=metricRows([['Tổng ('+pd.length+' ngày)',fN(sum(pd,'page_views'))],['TB/ngày',avg(pd,'page_views')],['Cao nhất',fN(Math.max.apply(null,pd.map(function(r){return r.page_views||0})))],['Thấp nhất',fN(Math.min.apply(null,pd.map(function(r){return r.page_views||0})))]]);if(pd.length>1)html+='<br>'+miniBarChart(pd.slice(-7).map(function(r){return[fDS(r.date),r.page_views]}));return html}
+
+  if(/video|xem video/i.test(ql)){if(!pd.length)return noData();var tO=sum(pd,'video_views_organic'),tP=sum(pd,'video_views_paid'),tV=tO+tP;var html='🎬 <strong>Phân tích Video</strong><br><br>';html+=metricRows([['Tổng lượt xem',fN(tV)],['Tự nhiên',fN(tO)+(tV>0?' ('+(tO/tV*100).toFixed(1)+'%)':'')],['Trả phí',fN(tP)+(tV>0?' ('+(tP/tV*100).toFixed(1)+'%)':'')],['TB/ngày',avg(pd,'video_views')]]);return html}
+
+  if(/xuất|export|pdf|báo cáo.*file|tải.*báo cáo|in.*báo cáo/i.test(ql)){exportPDF();return'📄 <strong>Đang tạo báo cáo PDF...</strong><br>Cửa sổ in sẽ mở — chọn "Save as PDF" để lưu.'+sugTags(['Tổng hợp nhanh','Top bài viết'])}
+
+  if(/tư vấn|chiến lược|lời khuyên|đề xuất|strategy|advic|nên làm gì|cải thiện/i.test(ql)){
+    if(!pd.length&&!ps.length)return noData();
+    var html='🎯 <strong>Tư vấn chiến lược từ dữ liệu</strong><br><br>';
+    var advItems=[];
+    if(pd.length>=2){
+      var l=last(pd),f=pd[0],fc=l.followers-f.followers,dailyAvg=(fc/pd.length).toFixed(1);
+      if(fc<0)advItems.push('⛔ <strong>Followers giảm '+Math.abs(fc)+'</strong> — ưu tiên giữ chân: giảm tần suất bài quảng cáo, tăng bài giá trị (tips, how-to), chạy retargeting');
+      else if(parseFloat(dailyAvg)<1)advItems.push('⚠ Tăng trưởng chậm ('+dailyAvg+'/ngày) — chạy Page Like ads ngân sách nhỏ, tăng Reels/Video ngắn, collab cross-page');
+      else advItems.push('✅ Tăng trưởng tốt (+'+dailyAvg+'/ngày) — giữ nhịp, xây series cố định');
+    }
+    if(ps.length>=3){
+      var tm={};ps.forEach(function(p){var t=p.post_type||'?';if(!tm[t])tm[t]={c:0,e:0};tm[t].c++;tm[t].e+=p.total_engagement||0});
+      var best=Object.entries(tm).sort(function(a,b){return(b[1].e/b[1].c)-(a[1].e/a[1].c)})[0];
+      advItems.push('📋 Dạng <strong>'+best[0]+'</strong> hiệu quả nhất (TB '+Math.round(best[1].e/best[1].c)+' tương tác) — tăng tỷ trọng lên 50-60%');
+    }
+    if(ps.length>=1){
+      var tE=sum(ps,'total_engagement'),tSh=sum(ps,'shares'),tCm=sum(ps,'comments');
+      var shR=tE>0?(tSh/tE*100).toFixed(1):0;
+      if(parseFloat(shR)<5)advItems.push('🔄 Chia sẻ thấp ('+shR+'%) — thử: infographic, facts bất ngờ, "tag bạn bè", content tranh luận nhẹ');
+      var cmR=tE>0?(tCm/tE*100).toFixed(1):0;
+      if(parseFloat(cmR)<8)advItems.push('💬 Bình luận thấp ('+cmR+'%) — cần CTA rõ hơn: câu hỏi cuối bài, poll, "bạn chọn gì?"');
+    }
+    if(pd.length>=3&&ps.length>=1){
+      var ppd=ps.length/pd.length;
+      if(ppd<0.7)advItems.push('⏰ Đăng quá ít ('+( ppd*7).toFixed(1)+' bài/tuần) — tối thiểu 1 bài/ngày, lập content calendar trước 1 tuần');
+      else if(ppd>2)advItems.push('⏰ Đăng quá nhiều ('+(ppd*7).toFixed(1)+' bài/tuần) — giảm còn 7-14 bài/tuần, tăng chất lượng');
+    }
+    html+=advItems.map(function(a){return '<div style="padding:6px 0;border-bottom:1px solid #f0f2f5">'+a+'</div>'}).join('');
+    html+=sugTags(['Chấm điểm bài viết','So sánh giai đoạn','Xu hướng']);
+    return html;
+  }
+
+  if(/chấm điểm|scoring|xếp hạng bài|đánh giá bài|điểm.*bài/i.test(ql)){
+    if(ps.length<2)return noDataPost();
+    var maxE=Math.max.apply(null,ps.map(function(p){return p.total_engagement||0}).concat([1]));
+    var maxCl=Math.max.apply(null,ps.map(function(p){return p.clicks||0}).concat([1]));
+    var maxCm=Math.max.apply(null,ps.map(function(p){return p.comments||0}).concat([1]));
+    var maxSh=Math.max.apply(null,ps.map(function(p){return p.shares||0}).concat([1]));
+    var scored=ps.map(function(p){
+      var sc=Math.round((p.total_engagement||0)/maxE*40+(p.clicks||0)/maxCl*20+(p.comments||0)/maxCm*20+(p.shares||0)/maxSh*20);
+      return{p:p,score:sc};
+    }).sort(function(a,b){return b.score-a.score}).slice(0,5);
+    var gradeF=function(s){return s>=80?'A+':s>=60?'A':s>=40?'B':s>=20?'C':'D'};
+    var html='⭐ <strong>Scoring Top 5 bài viết</strong><br><br>';
+    html+=miniTable(['#','Grade','Điểm','Loại','Nội dung','TT'],scored.map(function(s,i){
+      return ['<strong>'+(i+1)+'</strong>','<strong>'+gradeF(s.score)+'</strong>',s.score+'/100',s.p.post_type||'?',String(s.p.message_preview||s.p.message||'').substring(0,25)+'...',fN(s.p.total_engagement)];
+    }));
+    var avgScore=Math.round(scored.reduce(function(s,x){return s+x.score},0)/scored.length);
+    html+='<br><strong>Điểm trung bình Top 5:</strong> '+avgScore+'/100 — '+(avgScore>=60?'<span style="color:#059669">Chất lượng tốt</span>':avgScore>=40?'<span style="color:#D97706">Trung bình</span>':'<span style="color:#DC2626">Cần cải thiện</span>');
+    html+='<br><br>💡 <strong>Scoring dựa trên:</strong> Tương tác (40%), Clicks (20%), Bình luận (20%), Chia sẻ (20%)';
+    html+=sugTags(['Tư vấn chiến lược','Top bài viết','Dạng bài hiệu quả']);
+    return html;
+  }
+
+  if(/so sánh tuần|so sánh tháng|tuần này.*trước|tháng này.*trước|so sánh giai đoạn|week.*vs|period/i.test(ql)){
+    if(pd.length<4)return'Cần ít nhất 4 ngày dữ liệu để so sánh giai đoạn.';
+    var half=Math.floor(pd.length/2);
+    var prev=pd.slice(0,half),curr=pd.slice(half);
+    function sSum(a,k){return a.reduce(function(s,r){return s+(Number(r[k])||0)},0)}
+    function sAvg(a,k){return a.length?sSum(a,k)/a.length:0}
+    function sPct(o,n){return o>0?((n-o)/o*100).toFixed(1):n>0?'+∞':'0'}
+    var metrics=[['Followers',sAvg(prev,'followers'),sAvg(curr,'followers')],['Tương tác',sAvg(prev,'post_engagements'),sAvg(curr,'post_engagements')],['Xem trang',sAvg(prev,'page_views'),sAvg(curr,'page_views')],['Video',sAvg(prev,'video_views'),sAvg(curr,'video_views')],['TT %',sAvg(prev,'engagement_rate'),sAvg(curr,'engagement_rate')]];
+    var html='⚖️ <strong>So sánh giai đoạn</strong><br>'+fD(tI(prev[0].date))+' → '+fD(tI(prev[prev.length-1].date))+' <strong>vs</strong> '+fD(tI(curr[0].date))+' → '+fD(tI(curr[curr.length-1].date))+'<br><br>';
+    html+=miniTable(['Chỉ số','Giai đoạn trước','Giai đoạn sau','Thay đổi'],metrics.map(function(m){
+      var pct=sPct(m[1],m[2]),v=parseFloat(pct);
+      var cls=v>0?'color:#059669':v<0?'color:#DC2626':'';
+      return [m[0],fN(Math.round(m[1])),fN(Math.round(m[2])),'<span style="'+cls+';font-weight:700">'+(v>0?'↑ +':'↓ ')+pct+'%</span>'];
+    }));
+    var fC=parseFloat(sPct(sAvg(prev,'followers'),sAvg(curr,'followers')));
+    var eC=parseFloat(sPct(sAvg(prev,'post_engagements'),sAvg(curr,'post_engagements')));
+    html+='<br><strong>Đánh giá:</strong> ';
+    if(fC>0&&eC>0)html+='<span style="color:#059669">Cả followers và tương tác đều tăng — đang đi đúng hướng.</span>';
+    else if(fC>0&&eC<0)html+='<span style="color:#D97706">Followers tăng nhưng tương tác giảm — cần xem lại chất lượng nội dung.</span>';
+    else if(fC<0&&eC>0)html+='<span style="color:#D97706">Tương tác tăng nhưng followers giảm — nội dung tốt nhưng chưa chuyển đổi thành follow.</span>';
+    else html+='<span style="color:#DC2626">Cả hai chỉ số đều giảm — cần review lại chiến lược tổng thể.</span>';
+    html+=sugTags(['Tư vấn chiến lược','Chấm điểm bài viết']);
+    return html;
+  }
+
+  if(/so sánh/i.test(ql)){if(pd.length<2)return'Cần ít nhất 2 ngày dữ liệu.';var l=last(pd),p=pd[pd.length-2];var html='⚖️ <strong>So sánh ngày gần nhất</strong><br>'+fD(tI(p.date))+' → '+fD(tI(l.date))+'<br><br>';var fields=[['Followers',p.followers,l.followers],['Tương tác',p.post_engagements,l.post_engagements],['Xem trang',p.page_views,l.page_views],['Video',p.video_views,l.video_views],['TT %',p.engagement_rate,l.engagement_rate]];html+=miniTable(['Chỉ số','Trước','Sau','Thay đổi'],fields.map(function(f){var diff=f[2]-f[1];var cls=diff>0?'color:#059669':diff<0?'color:#DC2626':'';return[f[0],fN(f[1]),fN(f[2]),'<span style="'+cls+'">'+(diff>0?'+':'')+fN(diff)+'</span>']}));return html}
+
+  if(/giúp|help|làm gì|hỏi gì|có thể/i.test(ql))return'🤖 <strong>Tôi có thể giúp bạn:</strong><br><br>• <strong>Tra cứu:</strong> Followers, tương tác, xem trang, video<br>• <strong>Phân tích:</strong> Xu hướng, so sánh, dạng bài hiệu quả<br>• <strong>Theo ngày:</strong> "Ngày 11/06", "hôm qua", "7 ngày"<br>• <strong>Top bài viết:</strong> Xếp hạng tương tác<br>• <strong>Xuất PDF:</strong> Tạo báo cáo tải về'+sugTags(['Tổng hợp nhanh','Followers','Bài viết tốt nhất','Reactions']);
+
+  if(/xin chào|chào|hi|hello|hey/i.test(ql))return'Chào bạn! 👋 Hãy hỏi bất kỳ điều gì về fanpage nhé!'+sugTags(['Tổng hợp nhanh','Followers hiện tại?','Giúp gì được?']);
+
+  return'Tôi chưa hiểu câu hỏi "<em>'+q+'</em>". Thử hỏi:<br>• <strong>Tư vấn chiến lược</strong> — lời khuyên dựa trên dữ liệu<br>• <strong>Chấm điểm bài viết</strong> — scoring & xếp hạng<br>• <strong>So sánh giai đoạn</strong> — trước vs sau<br>• Followers, tương tác, reactions, dạng bài<br>• Xu hướng, xuất PDF'+sugTags(['Tư vấn chiến lược','Chấm điểm bài viết','Tổng hợp nhanh']);
+}
+
+function noData(){return'⚠ Chưa có dữ liệu. Nhấn <strong>Tải lại</strong>.'}
+function noDataPost(){return'⚠ Chưa có bài viết. Nhấn <strong>Tải lại</strong>.'}
+
+function exportPDF(){var d=getFiltered(),pd=d.pd,ps=d.ps;var l=pd.length?last(pd):null;var w=window.open('','_blank');var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Báo cáo Fanpage</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:40px;color:#1c1e21;max-width:800px;margin:0 auto}h1{font-size:22px;color:#ef4444;border-bottom:3px solid #ef4444;padding-bottom:10px}h2{font-size:16px;color:#7C3AED;margin-top:24px;border-left:4px solid #7C3AED;padding-left:10px}.meta{color:#65676b;font-size:12px;margin:8px 0 20px}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}th{background:#f0f2f5;padding:8px 10px;text-align:left;font-weight:600;border-bottom:2px solid #e4e6eb}td{padding:7px 10px;border-bottom:1px solid #e4e6eb}.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.kpi-item{background:#f7f8fa;border-radius:8px;padding:12px;text-align:center}.kpi-item .val{font-size:20px;font-weight:700;color:#e11d48}.kpi-item .label{font-size:11px;color:#65676b;margin-top:4px}.footer{margin-top:30px;padding-top:12px;border-top:1px solid #e4e6eb;font-size:11px;color:#999;text-align:center}@media print{body{padding:20px}}</style></head><body>';html+='<h1>📊 Báo cáo hiệu suất Fanpage</h1><div class="meta">Ngày tạo: '+new Date().toLocaleString('vi-VN')+' | Dữ liệu: '+pd.length+' ngày, '+ps.length+' bài viết</div>';if(l){html+='<h2>Tổng quan</h2><div class="kpi-grid"><div class="kpi-item"><div class="val">'+fN(l.followers)+'</div><div class="label">Followers</div></div><div class="kpi-item"><div class="val">'+fN(l.post_engagements)+'</div><div class="label">Tương tác</div></div><div class="kpi-item"><div class="val">'+fN(l.page_views)+'</div><div class="label">Xem trang</div></div><div class="kpi-item"><div class="val">'+fN(ps.length)+'</div><div class="label">Bài viết</div></div></div>'}if(pd.length){html+='<h2>Dữ liệu hàng ngày</h2><table><thead><tr><th>Ngày</th><th>Followers</th><th>Follows ròng</th><th>Tương tác</th><th>Xem trang</th><th>TT %</th><th>Video</th></tr></thead><tbody>';pd.slice().reverse().forEach(function(r){html+='<tr><td>'+fD(r.date)+'</td><td>'+fN(r.followers)+'</td><td style="color:'+(r.net_follows<0?'#DC2626':'#059669')+'">'+(r.net_follows>=0?'+':'')+fN(r.net_follows)+'</td><td>'+fN(r.post_engagements)+'</td><td>'+fN(r.page_views)+'</td><td>'+r.engagement_rate+'%</td><td>'+fN(r.video_views)+'</td></tr>'});html+='</tbody></table>'}if(ps.length){html+='<h2>Chi tiết bài viết</h2><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Clicks</th><th>React</th><th>BL</th><th>CS</th><th>Tổng TT</th><th>Link</th></tr></thead><tbody>';ps.forEach(function(p){html+='<tr><td>'+fD(tI(p.created_time))+'</td><td>'+(p.post_type||'?')+'</td><td>'+String(p.message_preview||p.message||'').substring(0,50)+'</td><td>'+fN(p.clicks)+'</td><td>'+fN(p.reactions_total)+'</td><td>'+fN(p.comments)+'</td><td>'+fN(p.shares)+'</td><td style="font-weight:700;color:#e11d48">'+fN(p.total_engagement)+'</td><td>'+(p.permalink_url?'<a href="'+p.permalink_url+'">Xem</a>':'—')+'</td></tr>'});html+='</tbody></table>'}html+='<div class="footer">Báo cáo tự động — Dashboard Fanpage Ver 2</div></body></html>';w.document.write(html);w.document.close();setTimeout(function(){w.print()},500)}
+
+function sendChat(){
+  var q=inp.value.trim();if(!q)return;
+  addMsg(q,true);inp.value='';inp.style.height='40px';
+  showTyping();
+  setTimeout(function(){
+    hideTyping();
+    addMsg(processQuery(q),false);
+    renderSuggestions();
+    saveCurrentMessages();
+  },400+Math.random()*400);
+}
+
+document.getElementById('chatFab').addEventListener('click',function(){
+  isOpen=!isOpen;
+  popup.classList.toggle('open',isOpen);
+  if(isOpen){
+    loadConvs();
+    if(!conversations.length)createConv();
+    if(!activeConvId||!getConv(activeConvId)){activeConvId=conversations[0].id;saveConvs()}
+    var conv=getConv(activeConvId);
+    if(conv){renderMessages(conv.messages);titleEl.textContent=conv.name}
+    inp.focus();
+  } else {
+    saveCurrentMessages();
+    convPanel.classList.remove('open');
+  }
+});
+
+document.getElementById('chatClose').addEventListener('click',function(){saveCurrentMessages();isOpen=false;popup.classList.remove('open');convPanel.classList.remove('open')});
+
+document.getElementById('btnConvList').addEventListener('click',function(){renderConvList();convPanel.classList.toggle('open')});
+document.getElementById('btnConvBack').addEventListener('click',function(){convPanel.classList.remove('open')});
+
+document.getElementById('btnNewConv').addEventListener('click',function(){saveCurrentMessages();var nc=createConv();renderMessages(nc.messages);titleEl.textContent=nc.name;convPanel.classList.remove('open');inp.focus()});
+document.getElementById('btnNewConv2').addEventListener('click',function(){saveCurrentMessages();var nc=createConv();renderMessages(nc.messages);titleEl.textContent=nc.name;convPanel.classList.remove('open');inp.focus()});
+
+document.getElementById('chatSend').addEventListener('click',sendChat);
+inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
+inp.addEventListener('input',function(){this.style.height='40px';this.style.height=Math.min(this.scrollHeight,80)+'px'});
+document.addEventListener('click',function(e){if(e.target.classList.contains('tag-suggest')){inp.value=e.target.textContent;sendChat()}});
+})();
+</script>
+</body>
+</html>
