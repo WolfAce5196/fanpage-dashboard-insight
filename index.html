@@ -1758,6 +1758,7 @@ var popup=document.getElementById('chatPopup');
 var sugBox=document.getElementById('sugItems');
 var sugToggle=document.getElementById('sugToggle');
 var sugWrap=document.getElementById('chatSug');
+body.addEventListener('click',function(e){var btn=e.target.closest('.followup-box button');if(btn){inp.value=btn.textContent;sendChat()}});
 sugToggle.addEventListener('click',function(){sugWrap.classList.toggle('hidden');sugToggle.innerHTML=sugWrap.classList.contains('hidden')?'<i class="ti ti-bulb-off"></i>':'<i class="ti ti-bulb"></i>'});
 var convPanel=document.getElementById('convPanel');
 var convListEl=document.getElementById('convList');
@@ -1919,13 +1920,13 @@ function getFilteredChat(){
 }
 function prepareDataForAI(){
   var d=getFilteredChat();
-  // Last 30 days of daily data
-  var recentPd=d.pd.slice(-30).map(function(r){
-    return{date:r.date,page_name:r.page_name,followers:r.followers,net_follows:r.net_follows,engagements:r.post_engagements||r.engagements,reach:r.reach,clicks:r.clicks,comments:r.comments,shares:r.shares,video_views:r.video_views,page_views:r.page_views,engagement_rate:r.engagement_rate};
+  // Last 14 days of daily data (reduced from 30 to save tokens)
+  var recentPd=d.pd.slice(-14).map(function(r){
+    return{d:r.date,p:r.page_name,fw:r.followers,nf:r.net_follows,eng:r.post_engagements||r.engagements,rch:r.reach,clk:r.clicks,cmt:r.comments,shr:r.shares,vv:r.video_views,er:r.engagement_rate};
   });
-  // Top 30 posts by engagement
-  var topPs=d.ps.slice().sort(function(a,b){return(b.total_engagement||0)-(a.total_engagement||0)}).slice(0,30).map(function(p){
-    return{created_time:p.created_time,page_name:p.page_name,message:(p.message||'').substring(0,100),post_type:p.post_type,total_engagement:p.total_engagement,clicks:p.clicks,reactions_total:p.reactions_total,comments:p.comments,shares:p.shares,video_views:p.video_views};
+  // Top 15 posts by engagement (reduced from 30)
+  var topPs=d.ps.slice().sort(function(a,b){return(b.total_engagement||0)-(a.total_engagement||0)}).slice(0,15).map(function(p){
+    return{dt:p.created_time,p:p.page_name,msg:(p.message||'').substring(0,60),tp:p.post_type,eng:p.total_engagement,clk:p.clicks,react:p.reactions_total,cmt:p.comments,shr:p.shares,vv:p.video_views};
   });
   return{pageData:recentPd,postData:topPs,totalDays:d.pd.length,totalPosts:d.ps.length,pageName:d.pageName};
 }
