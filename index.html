@@ -1173,7 +1173,7 @@ function gFD(){
 }
 
 // === RENDER ALL ===
-function rA(){var d=gFD();rKPI(d.pd,d.ps);rOC(d.pd,d.ps);rDC(d.pd);rDT(d.pd);rPC(d.ps);rPCards(d.ps);rPT2(d.ps);rAn(d.pd,d.ps);rStrat(d.pd,d.ps)}
+function rA(){var d=gFD();rKPI(d.pd,d.ps);rOC(d.pd,d.ps);rDC(d.pd,d.ps);rDT(d.pd);rPC(d.ps);rPCards(d.ps);rPT2(d.ps);rAn(d.pd,d.ps);rStrat(d.pd,d.ps)}
 
 // === KPIs ===
 function rKPI(pd,ps){
@@ -1221,15 +1221,14 @@ function rOC(pd,ps){
   // Followers chart — chỉ dùng page_daily
   if(pd.length) rc('cFL','line',lb,[{label:'Followers',data:pd.map(function(r){return r.followers}),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.1)',fill:true,tension:0.3}]);
 
-  // Tương tác chart — fallback: tổng hợp từ posts theo ngày nếu page_daily = 0
-  var pdEngHasData=pd.some(function(r){return (r.post_engagements||0)>0});
-  if(pdEngHasData){
-    rc('cEG','bar',lb,[{label:'Tương tác',data:pd.map(function(r){return r.post_engagements}),backgroundColor:'#2563EB',borderRadius:6}]);
-  } else if(ps.length){
+  // Tương tác chart — dùng posts theo ngày khi page_daily ít data (≤2 ngày)
+  if(ps.length&&pd.length<=2){
     var engByDate={};
     ps.forEach(function(p){var dt=tI(p.created_time);if(dt){if(!engByDate[dt])engByDate[dt]=0;engByDate[dt]+=(p.total_engagement||0)}});
     var engDates=Object.keys(engByDate).sort();
     rc('cEG','bar',engDates.map(function(d){return fDS(d)}),[{label:'Tương tác (từ bài viết)',data:engDates.map(function(d){return engByDate[d]}),backgroundColor:'#2563EB',borderRadius:6}]);
+  } else if(pd.length){
+    rc('cEG','bar',lb,[{label:'Tương tác',data:pd.map(function(r){return r.post_engagements}),backgroundColor:'#2563EB',borderRadius:6}]);
   }
 
   // Reactions theo loại — fallback: hiển thị tổng từ posts nếu page_daily = 0
@@ -1252,16 +1251,29 @@ function rOC(pd,ps){
 }
 
 // === DAILY CHARTS ===
-function rDC(pd){
-  if(!pd.length)return;
+function rDC(pd,ps){
+  if(!pd.length&&!ps.length)return;
   var lb=pd.map(function(r){return fDS(r.date)});
-  rc('cFD','bar',lb,[
+  // Follows — chỉ có từ page_daily
+  if(pd.length) rc('cFD','bar',lb,[
     {label:'Follows mới',data:pd.map(function(r){return r.new_followers||0}),backgroundColor:'#059669',borderRadius:6},
     {label:'Bỏ theo dõi',data:pd.map(function(r){return r.unfollows||0}),backgroundColor:'#DC2626',borderRadius:6},
     {label:'Ròng',data:pd.map(function(r){return r.net_follows}),type:'line',borderColor:'#4F46E5',backgroundColor:'transparent',borderWidth:2,pointRadius:4,tension:0.3}
   ]);
-  rc('cPV','line',lb,[{label:'Lượt xem trang',data:pd.map(function(r){return r.page_views}),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.1)',fill:true,tension:0.3}]);
-  rc('cER','line',lb,[{label:'Tỷ lệ TT %',data:pd.map(function(r){return r.engagement_rate}),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.1)',fill:true,tension:0.3}]);
+  // Lượt xem trang — chỉ có từ page_daily
+  if(pd.length) rc('cPV','line',lb,[{label:'Lượt xem trang',data:pd.map(function(r){return r.page_views}),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,0.1)',fill:true,tension:0.3}]);
+  // Tỷ lệ TT — fallback: tính từ posts theo ngày khi page_daily ít data
+  if(ps.length&&pd.length<=2){
+    var erByDate={};
+    var lastFollowers=pd.length?pd[pd.length-1].followers:0;
+    ps.forEach(function(p){var dt=tI(p.created_time);if(dt){if(!erByDate[dt])erByDate[dt]=0;erByDate[dt]+=(p.total_engagement||0)}});
+    var erDates=Object.keys(erByDate).sort();
+    if(lastFollowers>0){
+      rc('cER','line',erDates.map(function(d){return fDS(d)}),[{label:'Tỷ lệ TT % (từ bài viết)',data:erDates.map(function(d){return parseFloat((erByDate[d]/lastFollowers*100).toFixed(2))}),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.1)',fill:true,tension:0.3}]);
+    }
+  } else if(pd.length){
+    rc('cER','line',lb,[{label:'Tỷ lệ TT %',data:pd.map(function(r){return r.engagement_rate}),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.1)',fill:true,tension:0.3}]);
+  }
 }
 
 function rDT(pd){
@@ -1269,7 +1281,7 @@ function rDT(pd){
   if(!pd.length){t.innerHTML='<tr><td style="text-align:center;padding:20px;color:#65676b">Chưa có dữ liệu</td></tr>';return}
   var cs=['date','page_name','followers','net_follows','page_views','post_engagements','engagement_rate','video_views'];
   var ns=['Ngày','Fanpage','Followers','Follows ròng','Xem trang','Tương tác','TT %','Video'];
-  t.innerHTML='<thead><tr>'+ns.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>'+pd.slice().reverse().map(function(r){return '<tr>'+cs.map(function(c){return '<td>'+(c==='date'?fD(r[c]):c==='net_follows'?'<span style="color:'+(r[c]<0?'#DC2626':'#059669')+'">'+fN(r[c])+'</span>':fN(r[c]))+'</td>'}).join('')+'</tr>'}).join('')+'</tbody>';
+  t.innerHTML='<thead><tr>'+ns.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>'+pd.slice().reverse().map(function(r){return '<tr>'+cs.map(function(c){return '<td>'+(c==='date'?fD(r[c]):c==='page_name'?(r[c]||'—'):c==='net_follows'?'<span style="color:'+(r[c]<0?'#DC2626':'#059669')+'">'+fN(r[c])+'</span>':fN(r[c]))+'</td>'}).join('')+'</tr>'}).join('')+'</tbody>';
 }
 
 // === POST CHARTS ===
