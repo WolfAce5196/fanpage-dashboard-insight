@@ -1079,7 +1079,7 @@ function loadData(){
 
   // Fetch posts_detail + pages (lookup page_name)
   Promise.all([
-    fetch(sbBase + 'posts_detail?select=*&order=created_time.desc&limit=200', {headers: sbHeaders}).then(function(r){ return r.json(); }),
+    fetch(sbBase + 'posts_detail?select=*&order=created_time.desc', {headers: sbHeaders}).then(function(r){ return r.json(); }),
     fetch(sbBase + 'pages?select=id,page_name', {headers: sbHeaders}).then(function(r){ return r.json(); })
   ]).then(function(results){
     var posts = Array.isArray(results[0]) ? results[0] : [];
