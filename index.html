@@ -1974,30 +1974,48 @@ function prepareDataForAI(){
 var CHART_COLORS=['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
 function renderChart(block){
   var lines=block.trim().split('\n');
-  var headerMatch=lines[0].match(/^\[CHART:(\w+):(.+)\]$/);
+  var headerMatch=lines[0].match(/^\[CHART:(\w+):(.+?)\]?\s*$/);
   if(!headerMatch)return '';
-  var title=headerMatch[2];
+  var title=headerMatch[2].replace(/\]$/,'');
   var rows=[];var maxVal=0;
   for(var i=1;i<lines.length;i++){
-    if(lines[i].indexOf('[/CHART]')>-1)break;
-    var parts=lines[i].split('|');
-    if(parts.length>=2){var v=parseFloat(parts[1]);if(!isNaN(v)){rows.push({label:parts[0].trim(),value:v});if(v>maxVal)maxVal=v}}
+    var ln=lines[i].trim();
+    if(!ln||ln.indexOf('[/CHART]')>-1||ln.indexOf('[CHART:')>-1)break;
+    // Tìm pipe cuối cùng để tách label|value (label có thể chứa |)
+    var lastPipe=ln.lastIndexOf('|');
+    if(lastPipe>0){
+      var label=ln.substring(0,lastPipe).trim();
+      var valStr=ln.substring(lastPipe+1).trim().replace(/[,%]/g,'');
+      var v=parseFloat(valStr);
+      if(!isNaN(v)&&label.length>0){
+        // Xóa emoji đầu label nếu quá dài, giữ ngắn gọn cho chart
+        if(label.length>30)label=label.substring(0,30)+'…';
+        rows.push({label:label,value:v});
+        if(v>maxVal)maxVal=v;
+      }
+    }
   }
   if(!rows.length)return '';
   var html='<div class="inline-chart"><div class="chart-title">'+title+'</div>';
   rows.forEach(function(r,idx){
     var pct=maxVal>0?Math.round(r.value/maxVal*100):0;
     var color=CHART_COLORS[idx%CHART_COLORS.length];
-    html+='<div class="chart-row"><span class="chart-label">'+r.label+'</span><div class="chart-bar-wrap"><div class="chart-bar" style="width:'+pct+'%;background:'+color+'"></div></div><span class="chart-val">'+r.value+'</span></div>';
+    var fmtVal=r.value>=1000?(r.value/1000).toFixed(1)+'k':r.value;
+    html+='<div class="chart-row"><span class="chart-label" title="'+r.label+'">'+r.label+'</span><div class="chart-bar-wrap"><div class="chart-bar" style="width:'+pct+'%;background:'+color+'"></div></div><span class="chart-val">'+fmtVal+'</span></div>';
   });
   html+='</div>';
   return html;
 }
 function md2html(t){
-  // Extract and replace chart blocks first (before escaping)
+  // Extract chart blocks — hỗ trợ cả có và không có [/CHART] closing tag
   var charts=[];
+  // Pattern 1: có [/CHART] đóng tag
   t=t.replace(/\[CHART:\w+:[^\]]+\][\s\S]*?\[\/CHART\]/g,function(match){
-    charts.push(match);return '%%CHART_'+( charts.length-1)+'%%';
+    charts.push(match);return '%%CHART_'+(charts.length-1)+'%%';
+  });
+  // Pattern 2: không có [/CHART] — tìm [CHART:...] rồi lấy các dòng label|value tiếp theo
+  t=t.replace(/\[CHART:(\w+):([^\]]+)\]\s*\n((?:.*\S+\|[\d.,]+%?\s*\n?)+)/g,function(match){
+    charts.push(match);return '%%CHART_'+(charts.length-1)+'%%';
   });
   // Escape HTML
   t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
